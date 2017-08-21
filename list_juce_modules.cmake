@@ -12,6 +12,7 @@ endif()
 
 # TODO: add juce_common pseudo target to configure AppConfig.h file and define common includes
 
+include(JuceOptions.cmake)
 
 ###############################################################################
 # find list of all modules
@@ -70,9 +71,31 @@ endfunction()
 
 ###############################################################################
 
+# generate options
+foreach(module ${modules})
+	option(JUCE_MODULE_AVAILABLE_${module} "Enable JUCE module ${module}" ON)
+endforeach()
+
+# generate AppConfig
+
+# generate module deineoptions
+set(JUCE_MODULE_AVAILABLE_DEFINE_LIST "")
+foreach(module ${modules})
+	if(JUCE_MODULE_AVAILABLE_${module})
+		string(APPEND JUCE_MODULE_AVAILABLE_DEFINE_LIST "#define JUCE_MODULE_AVAILABLE_${module}\t1\n")
+	else()
+		string(APPEND JUCE_MODULE_AVAILABLE_DEFINE_LIST "#define JUCE_MODULE_AVAILABLE_${module}\t0\n")
+	endif()
+endforeach()
+
+configure_file("AppConfig.h.in" "${PROJECT_BINARY_DIR}/AppConfig.h")
 
 # add_library for each module
 foreach(module ${modules})
+	if(NOT JUCE_MODULE_AVAILABLE_${module})
+		continue()
+	endif()
+
 	set(current_module_prefix "${JUCE_MODULES_PREFIX}/${module}")
 
 	set(${module}_HEADER "${current_module_prefix}/${module}.h")
@@ -99,10 +122,10 @@ foreach(module ${modules})
 	set(properties dependencies OSXFrameworks iOSFrameworks linuxLibs)
 	foreach(property ${properties})
 		juce_module_get_array_property(${module}_${property} ${property} ${${module}_HEADER})
-		message("\t${property}: ${${module}_${property}}")
+		#message("\t${property}: ${${module}_${property}}")
 	endforeach()
 
-	message("${module}_dependencies: ${${module}_dependencies}")
+	#message("${module}_dependencies: ${${module}_dependencies}")
 	target_link_libraries(${module} "${${module}_dependencies}")
 
 	# platform specific
