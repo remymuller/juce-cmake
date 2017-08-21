@@ -1,5 +1,27 @@
 ###############################################################################
-# AppConfig Options
+# JUCE AppConfig Options
+# TODO regenerate them from the Projucer generated file
+
+# ==============================================================================
+#  In accordance with the terms of the JUCE 5 End-Use License Agreement, the
+#  JUCE Code in SECTION A cannot be removed, changed or otherwise rendered
+#  ineffective unless you have a JUCE Indie or Pro license, or are using JUCE
+#  under the GPL v3 license.
+#  End User License Agreement: www.juce.com/juce-5-licence
+# ==============================================================================
+
+# BEGIN SECTION A
+
+Option(JUCE_DISPLAY_SPLASH_SCREEN "" OFF)
+Option(JUCE_REPORT_APP_USAGE "" OFF)
+
+# END SECTION A
+
+Option(JUCE_USE_DARK_SPLASH_SCREEN "" ON)
+
+
+#==============================================================================
+# juce_audio_devices flags:
 
 Option(JUCE_ASIO "" OFF)
 
