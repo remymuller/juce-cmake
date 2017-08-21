@@ -1,18 +1,12 @@
+###############################################################################
+# 
+#   Juce Modules
+# 
+###############################################################################
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-if(APPLE)
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		set(MACOSX true)
-	else() 
-		set(IOS true)	
-	endif()
-endif()
 
 # TODO: add juce_common pseudo target to configure AppConfig.h file and define common includes
 
-include(JuceOptions.cmake)
 
 ###############################################################################
 # find list of all modules
@@ -69,16 +63,30 @@ function(juce_module_get_array_property var property module_header)
 	endforeach() 
 endfunction()
 
-###############################################################################
 
-# generate options
+###############################################################################
+# generate module options
 foreach(module ${modules})
 	option(JUCE_MODULE_AVAILABLE_${module} "Enable JUCE module ${module}" ON)
 endforeach()
 
-# generate AppConfig
 
-# generate module deineoptions
+###############################################################################
+# generate JuceHeader.h
+set(JUCE_MODULE_INCLUDES_LIST "")
+foreach(module ${modules})
+    if(JUCE_MODULE_AVAILABLE_${module})
+        string(APPEND JUCE_MODULE_INCLUDES_LIST "#include <${module}/${module}.h\n")
+    endif()
+endforeach()
+
+configure_file("JuceHeader.h.in" "${PROJECT_BINARY_DIR}/JuceLibraryCode/JuceHeader.h")
+
+
+###############################################################################
+# generate AppConfig.h
+
+# generate module defineoptions
 set(JUCE_MODULE_AVAILABLE_DEFINE_LIST "")
 foreach(module ${modules})
 	if(JUCE_MODULE_AVAILABLE_${module})
@@ -88,8 +96,18 @@ foreach(module ${modules})
 	endif()
 endforeach()
 
-configure_file("AppConfig.h.in" "${PROJECT_BINARY_DIR}/AppConfig.h")
+configure_file("AppConfig.h.in" "${PROJECT_BINARY_DIR}/JuceLibraryCode/AppConfig.h")
 
+list(APPEND JUCE_INCLUDES "${PROJECT_BINARY_DIR}/JuceLibraryCode")
+
+###############################################################################
+# juce_common pseudo target
+
+add_library(juce_common INTERFACE)
+target_include_directories(juce_common INTERFACE ${JUCE_INCLUDES})
+
+
+###############################################################################
 # add_library for each module
 foreach(module ${modules})
 	if(NOT JUCE_MODULE_AVAILABLE_${module})
@@ -117,6 +135,9 @@ foreach(module ${modules})
 	message("add_library ${module}")
 	add_library(${module} ${${module}_SOURCES})
 
+    target_link_libraries(${module} juce_common)
+
+    # dependencies
 	#juce_get_module_info(juce_current_module_info, ${${module}_HEADER})
 
 	set(properties dependencies OSXFrameworks iOSFrameworks linuxLibs)
@@ -124,9 +145,8 @@ foreach(module ${modules})
 		juce_module_get_array_property(${module}_${property} ${property} ${${module}_HEADER})
 		#message("\t${property}: ${${module}_${property}}")
 	endforeach()
-
-	#message("${module}_dependencies: ${${module}_dependencies}")
-	target_link_libraries(${module} "${${module}_dependencies}")
+    #message("${module}_dependencies: ${${module}_dependencies}")
+    target_link_libraries(${module} "${${module}_dependencies}")
 
 	# platform specific
 	if(MACOSX)
@@ -144,7 +164,6 @@ foreach(module ${modules})
 	endif()
 
 	#target_compile_definitions(${module} PUBLIC -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED)
-	target_include_directories(${module} PUBLIC ${JUCE_INCLUDES})
+	#target_include_directories(${module} PUBLIC ${JUCE_INCLUDES})
 	source_group(src FILES ${${module}_SOURCES})
-
 endforeach()
