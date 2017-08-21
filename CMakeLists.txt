@@ -9,6 +9,8 @@ cmake_minimum_required(VERSION 3.0)
 
 project(juce)
 
+# TODO: option(JUCE_USE_SINGLE_TARGET "" OFF) # generate one target per module or only one global target
+
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 

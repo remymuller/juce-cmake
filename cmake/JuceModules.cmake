@@ -137,9 +137,12 @@ foreach(module ${modules})
     set(${module}_IMPLEMENTATION "${PROJECT_BINARY_DIR}/JuceLibraryCode/include_${module}.${cpp_or_mm_ext}")
     configure_file("include_juce_module.cpp.in" "${${module}_IMPLEMENTATION}")
 
+    set_source_files_properties(${${module}_CPP} PROPERTIES HEADER_FILE_ONLY TRUE) # allows to not build it
+
     # TODO add mm or cpp without compiling
     set(${module}_SOURCES 
         "${${module}_HEADER}"
+        "${${module}_CPP}"
         "${${module}_IMPLEMENTATION}")
 
 	message("add_library ${module}")
