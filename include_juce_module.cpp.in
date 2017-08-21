@@ -6,4 +6,4 @@
 */
 
 #include "AppConfig.h"
-#include <${module}/${module}.${cpp_or_mm_extension}>
+#include <${module}/${module}.${cpp_or_mm_ext}>

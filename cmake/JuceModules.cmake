@@ -80,7 +80,9 @@ foreach(module ${modules})
     endif()
 endforeach()
 
-configure_file("JuceHeader.h.in" "${PROJECT_BINARY_DIR}/JuceLibraryCode/JuceHeader.h")
+
+set(JUCE_HEADER_H "${PROJECT_BINARY_DIR}/JuceLibraryCode/JuceHeader.h")
+configure_file("JuceHeader.h.in" ${JUCE_HEADER_H})
 
 
 ###############################################################################
@@ -96,7 +98,9 @@ foreach(module ${modules})
 	endif()
 endforeach()
 
-configure_file("AppConfig.h.in" "${PROJECT_BINARY_DIR}/JuceLibraryCode/AppConfig.h")
+set(JUCE_APPCONFIG_H "${PROJECT_BINARY_DIR}/JuceLibraryCode/AppConfig.h")
+
+configure_file("AppConfig.h.in" ${JUCE_APPCONFIG_H})
 
 list(APPEND JUCE_INCLUDES "${PROJECT_BINARY_DIR}/JuceLibraryCode")
 
@@ -107,6 +111,8 @@ add_library(juce_common INTERFACE)
 target_include_directories(juce_common INTERFACE ${JUCE_INCLUDES})
 
 set(JUCE_AVAILABLE_MODULES "")
+
+set(JUCE_SOURCES ${APP_CONFIG_H} ${JUCE_HEADER_H})
 
 ###############################################################################
 # add_library for each module
@@ -120,13 +126,12 @@ foreach(module ${modules})
 	set(${module}_HEADER "${current_module_prefix}/${module}.h")
     set(${module}_MM "${current_module_prefix}/${module}.mm")
     set(${module}_CPP "${current_module_prefix}/${module}.cpp")
-	set(${module}_SOURCES ${${module}_HEADER})
 
 	if(EXISTS ${${module}_MM} OR EXISTS ${${module}_CPP})
-		if(APPLE)
-            set(cpp_or_mm_ext ".mm")
+		if(APPLE AND EXISTS ${${module}_MM})
+            set(cpp_or_mm_ext "mm")
 		else()
-            set(cpp_or_mm_ext ".cpp")
+            set(cpp_or_mm_ext "cpp")
 		endif()
 	else() # it might be the audio_plugin_client module
 		continue()
@@ -141,9 +146,16 @@ foreach(module ${modules})
 
     # TODO add mm or cpp without compiling
     set(${module}_SOURCES 
-        "${${module}_HEADER}"
-        "${${module}_CPP}"
+        "${${module}_HEADER}" 
+        #"${${module}_CPP}" 
         "${${module}_IMPLEMENTATION}")
+
+    if(JUCE_CMAKE_USE_SINGLE_TARGET)
+        list(APPEND JUCE_SOURCES ${${module}_SOURCES})
+        continue()
+    else()
+        source_group(src FILES ${${module}_SOURCES})
+    endif()
 
 	message("add_library ${module}")
 	add_library(${module} ${${module}_SOURCES})
@@ -178,15 +190,18 @@ foreach(module ${modules})
 
 	#target_compile_definitions(${module} PUBLIC -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED)
 	#target_include_directories(${module} PUBLIC ${JUCE_INCLUDES})
-	source_group(src FILES ${${module}_SOURCES})
 endforeach()
 
 
 ###############################################################################
-# juce pseudo target (or merge all targets into one)
+# juce target 
 
-add_library(juce INTERFACE)
-foreach(module ${JUCE_AVAILABLE_MODULES})
-    target_link_libraries(juce INTERFACE "${module}")
-endforeach()
-
+if(JUCE_CMAKE_USE_SINGLE_TARGET)
+    add_library(juce ${JUCE_SOURCES})
+    source_group(JuceLibraryCode FILES ${JUCE_SOURCES})
+else()
+    add_library(juce INTERFACE)
+    foreach(module ${JUCE_AVAILABLE_MODULES})
+        target_link_libraries(juce INTERFACE "${module}")
+    endforeach()
+endif()

@@ -9,7 +9,11 @@ cmake_minimum_required(VERSION 3.0)
 
 project(juce)
 
-# TODO: option(JUCE_USE_SINGLE_TARGET "" OFF) # generate one target per module or only one global target
+#option(JUCE_CMAKE_USE_SINGLE_TARGET "generate one target per module or only one global target" OFF) 
+
+set(JUCE_PROJECT_NAME "NewProject" CACHE STRING "JUCE project's name") # 
+
+# TODO add cache options for paths to ASIOSDK, VSTSDK... etc
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
