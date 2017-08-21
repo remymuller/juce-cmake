@@ -27,12 +27,12 @@
 
 // BEGIN SECTION A
 
-#cmakedefine01 JUCE_DISPLAY_SPLASH_SCREEN 0
-#cmakedefine JUCE_REPORT_APP_USAGE 0
+#cmakedefine01 JUCE_DISPLAY_SPLASH_SCREEN
+#cmakedefine01 JUCE_REPORT_APP_USAGE
 
 // END SECTION A
 
-#cmakedefine JUCE_USE_DARK_SPLASH_SCREEN 1
+#cmakedefine01 JUCE_USE_DARK_SPLASH_SCREEN
 
 //==============================================================================
 ${JUCE_MODULE_AVAILABLE_DEFINE_LIST}
