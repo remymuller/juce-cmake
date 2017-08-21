@@ -106,6 +106,7 @@ list(APPEND JUCE_INCLUDES "${PROJECT_BINARY_DIR}/JuceLibraryCode")
 add_library(juce_common INTERFACE)
 target_include_directories(juce_common INTERFACE ${JUCE_INCLUDES})
 
+set(JUCE_AVAILABLE_MODULES "")
 
 ###############################################################################
 # add_library for each module
@@ -117,20 +118,29 @@ foreach(module ${modules})
 	set(current_module_prefix "${JUCE_MODULES_PREFIX}/${module}")
 
 	set(${module}_HEADER "${current_module_prefix}/${module}.h")
-	set(${module}_CPP "${current_module_prefix}/${module}.cpp")
-	set(${module}_MM "${current_module_prefix}/${module}.mm")
-
+    set(${module}_MM "${current_module_prefix}/${module}.mm")
+    set(${module}_CPP "${current_module_prefix}/${module}.cpp")
 	set(${module}_SOURCES ${${module}_HEADER})
 
-	if(EXISTS ${${module}_MM} OR EXISTS ${${module}_MM})
+	if(EXISTS ${${module}_MM} OR EXISTS ${${module}_CPP})
 		if(APPLE)
-			list(APPEND ${module}_SOURCES ${${module}_MM})
+            set(cpp_or_mm_ext ".mm")
 		else()
-			list(APPEND ${module}_SOURCES ${${module}_CPP})
+            set(cpp_or_mm_ext ".cpp")
 		endif()
 	else() # it might be the audio_plugin_client module
 		continue()
 	endif()
+
+    list(APPEND JUCE_AVAILABLE_MODULES ${module})
+
+    set(${module}_IMPLEMENTATION "${PROJECT_BINARY_DIR}/JuceLibraryCode/include_${module}.${cpp_or_mm_ext}")
+    configure_file("include_juce_module.cpp.in" "${${module}_IMPLEMENTATION}")
+
+    # TODO add mm or cpp without compiling
+    set(${module}_SOURCES 
+        "${${module}_HEADER}"
+        "${${module}_IMPLEMENTATION}")
 
 	message("add_library ${module}")
 	add_library(${module} ${${module}_SOURCES})
@@ -167,3 +177,13 @@ foreach(module ${modules})
 	#target_include_directories(${module} PUBLIC ${JUCE_INCLUDES})
 	source_group(src FILES ${${module}_SOURCES})
 endforeach()
+
+
+###############################################################################
+# juce pseudo target (or merge all targets into one)
+
+add_library(juce INTERFACE)
+foreach(module ${JUCE_AVAILABLE_MODULES})
+    target_link_libraries(juce INTERFACE "${module}")
+endforeach()
+
