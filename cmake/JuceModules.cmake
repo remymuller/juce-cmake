@@ -90,7 +90,7 @@ endforeach()
 
 
 set(JUCE_HEADER_H "${PROJECT_BINARY_DIR}/JuceLibraryCode/JuceHeader.h")
-configure_file("JuceHeader.h.in" ${JUCE_HEADER_H})
+configure_file("cmake/templates/JuceHeader.h.in" ${JUCE_HEADER_H})
 
 
 ###############################################################################
@@ -108,7 +108,7 @@ endforeach()
 
 set(JUCE_APPCONFIG_H "${PROJECT_BINARY_DIR}/JuceLibraryCode/AppConfig.h")
 
-configure_file("AppConfig.h.in" ${JUCE_APPCONFIG_H})
+configure_file("cmake/templates/AppConfig.h.in" ${JUCE_APPCONFIG_H})
 
 list(APPEND JUCE_INCLUDES "${PROJECT_BINARY_DIR}/JuceLibraryCode")
 
@@ -151,7 +151,7 @@ foreach(module ${modules})
     list(APPEND JUCE_AVAILABLE_MODULES ${module})
 
     set(${module}_IMPLEMENTATION "${PROJECT_BINARY_DIR}/JuceLibraryCode/include_${module}.${cpp_or_mm_ext}")
-    configure_file("include_juce_module.cpp.in" "${${module}_IMPLEMENTATION}")
+    configure_file("cmake/templates/include_juce_module.cpp.in" "${${module}_IMPLEMENTATION}")
 
     set_source_files_properties(${${module}_CPP} PROPERTIES HEADER_FILE_ONLY TRUE) # allows to not build it
 
