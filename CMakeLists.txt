@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.0)
 
 project(juce)
 
-#option(JUCE_CMAKE_USE_SINGLE_TARGET "generate one target per module or only one global target" OFF) 
+option(JUCE_CMAKE_USE_SINGLE_TARGET "generate one target per module or only one global target" OFF) 
 
 set(JUCE_PROJECT_NAME "NewProject" CACHE STRING "JUCE project's name") # 
 

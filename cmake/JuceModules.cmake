@@ -28,6 +28,14 @@ endforeach()
 ###############################################################################
 # helpers 
 
+function(juce_target_set_ndebug target)
+    set_target_properties(${target} PROPERTIES
+        COMPILE_DEFINITIONS         NDEBUG
+        COMPILE_DEFINITIONS_DEBUG   DEBUG
+        COMPILE_DEFINITIONS_RELEASE NDEBUG
+    )
+endfunction()
+
 # function(juce_get_module_info module_info module_header)
 # 	file(READ ${module_header} juce_module_header_str)
 
@@ -112,7 +120,10 @@ target_include_directories(juce_common INTERFACE ${JUCE_INCLUDES})
 
 set(JUCE_AVAILABLE_MODULES "")
 
-set(JUCE_SOURCES ${APP_CONFIG_H} ${JUCE_HEADER_H})
+set(JUCE_SOURCES ${JUCE_APPCONFIG_H} ${JUCE_HEADER_H})
+
+set(JUCE_OSXFrameworks "")
+set(JUCE_iOSFrameworks "")
 
 ###############################################################################
 # add_library for each module
@@ -146,7 +157,7 @@ foreach(module ${modules})
 
     # TODO add mm or cpp without compiling
     set(${module}_SOURCES 
-        "${${module}_HEADER}" 
+        #"${${module}_HEADER}" 
         #"${${module}_CPP}" 
         "${${module}_IMPLEMENTATION}")
 
@@ -161,6 +172,7 @@ foreach(module ${modules})
 	add_library(${module} ${${module}_SOURCES})
 
     target_link_libraries(${module} juce_common)
+    juce_target_set_ndebug(${module})
 
     # dependencies
 	#juce_get_module_info(juce_current_module_info, ${${module}_HEADER})
@@ -172,6 +184,14 @@ foreach(module ${modules})
 	endforeach()
     #message("${module}_dependencies: ${${module}_dependencies}")
     target_link_libraries(${module} "${${module}_dependencies}")
+
+    foreach(framework in ${OSXFrameworks})
+        list(APPEND JUCE_OSXFrameworks "-framework ${framework}")
+    endforeach()
+
+    foreach(framework in ${iOSFrameworks})
+        list(APPEND JUCE_iOSFrameworks "-framework ${framework}")
+    endforeach()
 
 	# platform specific
 	if(MACOSX)
@@ -198,7 +218,18 @@ endforeach()
 
 if(JUCE_CMAKE_USE_SINGLE_TARGET)
     add_library(juce ${JUCE_SOURCES})
+    target_link_libraries(juce juce_common)
+    juce_target_set_ndebug(juce)
     source_group(JuceLibraryCode FILES ${JUCE_SOURCES})
+
+    # platform dependencies
+    list(REMOVE_DUPLICATES JUCE_OSXFrameworks)
+    list(REMOVE_DUPLICATES JUCE_iOSFrameworks)
+    if(MACOSX)
+        target_link_libraries(juce "${JUCE_OSXFrameworks}")
+    elseif(IOS)
+        target_link_libraries(juce "${JUCE_iOSFrameworks}")
+    endif()
 else()
     add_library(juce INTERFACE)
     foreach(module ${JUCE_AVAILABLE_MODULES})
