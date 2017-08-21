@@ -29,11 +29,12 @@ endforeach()
 # helpers 
 
 function(juce_target_set_ndebug target)
-    set_target_properties(${target} PROPERTIES
-        COMPILE_DEFINITIONS         NDEBUG
-        COMPILE_DEFINITIONS_DEBUG   DEBUG
-        COMPILE_DEFINITIONS_RELEASE NDEBUG
-    )
+    target_compile_definitions(${target} PUBLIC "-D$<$<CONFIG:Debug>:DEBUG>" "-D$<$<CONFIG:Release>:NDEBUG>")
+    # set_target_properties(${target} PROPERTIES
+    #     COMPILE_DEFINITIONS         NDEBUG
+    #     COMPILE_DEFINITIONS_DEBUG   DEBUG
+    #     COMPILE_DEFINITIONS_RELEASE NDEBUG
+    # )
 endfunction()
 
 # function(juce_get_module_info module_info module_header)
@@ -84,7 +85,7 @@ endforeach()
 set(JUCE_MODULE_INCLUDES_LIST "")
 foreach(module ${modules})
     if(JUCE_MODULE_AVAILABLE_${module})
-        string(APPEND JUCE_MODULE_INCLUDES_LIST "#include <${module}/${module}.h\n")
+        string(APPEND JUCE_MODULE_INCLUDES_LIST "#include <${module}/${module}.h>\n")
     endif()
 endforeach()
 
@@ -117,6 +118,7 @@ list(APPEND JUCE_INCLUDES "${PROJECT_BINARY_DIR}/JuceLibraryCode")
 
 add_library(juce_common INTERFACE)
 target_include_directories(juce_common INTERFACE ${JUCE_INCLUDES})
+target_compile_features(juce_common INTERFACE cxx_auto_type cxx_constexpr)
 
 set(JUCE_AVAILABLE_MODULES "")
 
@@ -185,24 +187,25 @@ foreach(module ${modules})
     #message("${module}_dependencies: ${${module}_dependencies}")
     target_link_libraries(${module} "${${module}_dependencies}")
 
-    foreach(framework in ${OSXFrameworks})
+    foreach(framework in ${${module}_OSXFrameworks})
         list(APPEND JUCE_OSXFrameworks "-framework ${framework}")
     endforeach()
 
-    foreach(framework in ${iOSFrameworks})
+    foreach(framework in ${${module}_iOSFrameworks})
         list(APPEND JUCE_iOSFrameworks "-framework ${framework}")
     endforeach()
 
 	# platform specific
 	if(MACOSX)
 		set(${module}_frameworks "")
-		foreach(framework in ${OSXFrameworks})
+		foreach(framework ${${module}_OSXFrameworks})
 			list(APPEND ${module}_frameworks "-framework ${framework}")
 		endforeach()
+        message("${${module}_frameworks}")
 		target_link_libraries(${module} "${${module}_frameworks}")
 	elseif(IOS)
 		set(${module}_frameworks "")
-		foreach(framework in ${iOSFrameworks})
+		foreach(framework ${module}_iOSFrameworks})
 			list(APPEND ${module}_frameworks "-framework ${framework}")
 		endforeach()
 		target_link_libraries(${module} "${${module}_frameworks}")
@@ -222,6 +225,8 @@ if(JUCE_CMAKE_USE_SINGLE_TARGET)
     juce_target_set_ndebug(juce)
     source_group(JuceLibraryCode FILES ${JUCE_SOURCES})
 
+    message("${JUCE_OSXFrameworks}")
+
     # platform dependencies
     list(REMOVE_DUPLICATES JUCE_OSXFrameworks)
     list(REMOVE_DUPLICATES JUCE_iOSFrameworks)
@@ -230,6 +235,8 @@ if(JUCE_CMAKE_USE_SINGLE_TARGET)
     elseif(IOS)
         target_link_libraries(juce "${JUCE_iOSFrameworks}")
     endif()
+    message("${JUCE_INCLUDES}")
+    target_include_directories(juce PUBLIC ${JUCE_INCLUDES})
 else()
     add_library(juce INTERFACE)
     foreach(module ${JUCE_AVAILABLE_MODULES})
