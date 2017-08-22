@@ -158,7 +158,7 @@ foreach(module ${modules})
     set(${module}_SOURCES "${${module}_IMPLEMENTATION}")
     list(APPEND JUCE_SOURCES ${${module}_SOURCES})
 
-	message("add_library ${module}")
+	#message("add_library ${module}")
 	add_library(${module} INTERFACE)
 	target_sources(${module} INTERFACE ${${module}_SOURCES})
     target_link_libraries(${module} INTERFACE juce_common)
