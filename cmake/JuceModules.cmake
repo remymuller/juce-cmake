@@ -28,15 +28,6 @@ endforeach()
 ###############################################################################
 # helpers 
 
-function(juce_target_set_ndebug target)
-    target_compile_definitions(${target} PUBLIC "-D$<$<CONFIG:Debug>:DEBUG>" "-D$<$<CONFIG:Release>:NDEBUG>")
-    # set_target_properties(${target} PROPERTIES
-    #     COMPILE_DEFINITIONS         NDEBUG
-    #     COMPILE_DEFINITIONS_DEBUG   DEBUG
-    #     COMPILE_DEFINITIONS_RELEASE NDEBUG
-    # )
-endfunction()
-
 # function(juce_get_module_info module_info module_header)
 # 	file(READ ${module_header} juce_module_header_str)
 
@@ -89,9 +80,8 @@ foreach(module ${modules})
     endif()
 endforeach()
 
-
 set(JUCE_HEADER_H "${PROJECT_BINARY_DIR}/JuceLibraryCode/JuceHeader.h")
-configure_file("cmake/templates/JuceHeader.h.in" ${JUCE_HEADER_H})
+configure_file("${CMAKE_CURRENT_LIST_DIR}/templates/JuceHeader.h.in" ${JUCE_HEADER_H})
 
 
 ###############################################################################
@@ -109,23 +99,34 @@ endforeach()
 
 set(JUCE_APPCONFIG_H "${PROJECT_BINARY_DIR}/JuceLibraryCode/AppConfig.h")
 
-configure_file("cmake/templates/AppConfig.h.in" ${JUCE_APPCONFIG_H})
+configure_file("${CMAKE_CURRENT_LIST_DIR}/templates/AppConfig.h.in" ${JUCE_APPCONFIG_H})
 
 list(APPEND JUCE_INCLUDES "${PROJECT_BINARY_DIR}/JuceLibraryCode")
 
 ###############################################################################
 # juce_common pseudo target
 
+set(JUCE_COMMON_SOURCES ${JUCE_APPCONFIG_H} ${JUCE_HEADER_H})
 add_library(juce_common INTERFACE)
 target_include_directories(juce_common INTERFACE ${JUCE_INCLUDES})
 target_compile_features(juce_common INTERFACE cxx_auto_type cxx_constexpr)
+target_sources(juce_common INTERFACE ${JUCE_COMMON_SOURCES})
+source_group(JuceLibraryCode FILES ${JUCE_COMMON_SOURCES})
+set_target_properties(juce_common PROPERTIES
+    INTERFACE_COMPILE_DEFINITIONS         NDEBUG
+    INTERFACE_COMPILE_DEFINITIONS_DEBUG   DEBUG
+    INTERFACE_COMPILE_DEFINITIONS_RELEASE NDEBUG
+)
+
+
+###############################################################################
+
 
 set(JUCE_AVAILABLE_MODULES "")
-
 set(JUCE_SOURCES ${JUCE_APPCONFIG_H} ${JUCE_HEADER_H})
-
 set(JUCE_OSXFrameworks "")
 set(JUCE_iOSFrameworks "")
+
 
 ###############################################################################
 # add_library for each module
@@ -135,7 +136,6 @@ foreach(module ${modules})
 	endif()
 
 	set(current_module_prefix "${JUCE_MODULES_PREFIX}/${module}")
-
 	set(${module}_HEADER "${current_module_prefix}/${module}.h")
     set(${module}_MM "${current_module_prefix}/${module}.mm")
     set(${module}_CPP "${current_module_prefix}/${module}.cpp")
@@ -153,47 +153,22 @@ foreach(module ${modules})
     list(APPEND JUCE_AVAILABLE_MODULES ${module})
 
     set(${module}_IMPLEMENTATION "${PROJECT_BINARY_DIR}/JuceLibraryCode/include_${module}.${cpp_or_mm_ext}")
-    configure_file("cmake/templates/include_juce_module.cpp.in" "${${module}_IMPLEMENTATION}")
+    configure_file("${CMAKE_CURRENT_LIST_DIR}/templates/include_juce_module.cpp.in" "${${module}_IMPLEMENTATION}")
 
-    set_source_files_properties(${${module}_CPP} PROPERTIES HEADER_FILE_ONLY TRUE) # allows to not build it
-
-    # TODO add mm or cpp without compiling
-    set(${module}_SOURCES 
-        #"${${module}_HEADER}" 
-        #"${${module}_CPP}" 
-        "${${module}_IMPLEMENTATION}")
-
-    if(JUCE_CMAKE_USE_SINGLE_TARGET)
-        list(APPEND JUCE_SOURCES ${${module}_SOURCES})
-        continue()
-    else()
-        source_group(src FILES ${${module}_SOURCES})
-    endif()
+    set(${module}_SOURCES "${${module}_IMPLEMENTATION}")
+    list(APPEND JUCE_SOURCES ${${module}_SOURCES})
 
 	message("add_library ${module}")
-	add_library(${module} ${${module}_SOURCES})
-
-    target_link_libraries(${module} juce_common)
-    juce_target_set_ndebug(${module})
+	add_library(${module} INTERFACE)
+	target_sources(${module} INTERFACE ${${module}_SOURCES})
+    target_link_libraries(${module} INTERFACE juce_common)
 
     # dependencies
-	#juce_get_module_info(juce_current_module_info, ${${module}_HEADER})
-
 	set(properties dependencies OSXFrameworks iOSFrameworks linuxLibs)
 	foreach(property ${properties})
 		juce_module_get_array_property(${module}_${property} ${property} ${${module}_HEADER})
-		#message("\t${property}: ${${module}_${property}}")
 	endforeach()
-    #message("${module}_dependencies: ${${module}_dependencies}")
-    target_link_libraries(${module} "${${module}_dependencies}")
-
-    foreach(framework in ${${module}_OSXFrameworks})
-        list(APPEND JUCE_OSXFrameworks "-framework ${framework}")
-    endforeach()
-
-    foreach(framework in ${${module}_iOSFrameworks})
-        list(APPEND JUCE_iOSFrameworks "-framework ${framework}")
-    endforeach()
+    target_link_libraries(${module} INTERFACE "${${module}_dependencies}")
 
 	# platform specific
 	if(MACOSX)
@@ -201,45 +176,27 @@ foreach(module ${modules})
 		foreach(framework ${${module}_OSXFrameworks})
 			list(APPEND ${module}_frameworks "-framework ${framework}")
 		endforeach()
-        message("${${module}_frameworks}")
-		target_link_libraries(${module} "${${module}_frameworks}")
+		target_link_libraries(${module} INTERFACE "${${module}_frameworks}")
+
+	    list(APPEND JUCE_OSXFrameworks ${${module}_frameworks})
 	elseif(IOS)
 		set(${module}_frameworks "")
 		foreach(framework ${module}_iOSFrameworks})
 			list(APPEND ${module}_frameworks "-framework ${framework}")
 		endforeach()
-		target_link_libraries(${module} "${${module}_frameworks}")
-	endif()
+		target_link_libraries(${module} INTERFACE "${${module}_frameworks}")
 
-	#target_compile_definitions(${module} PUBLIC -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED)
-	#target_include_directories(${module} PUBLIC ${JUCE_INCLUDES})
+	    list(APPEND JUCE_iOSFrameworks ${${module}_frameworks})
+	endif()
 endforeach()
 
 
 ###############################################################################
 # juce target 
 
-if(JUCE_CMAKE_USE_SINGLE_TARGET)
-    add_library(juce ${JUCE_SOURCES})
-    target_link_libraries(juce juce_common)
-    juce_target_set_ndebug(juce)
-    source_group(JuceLibraryCode FILES ${JUCE_SOURCES})
+add_library(juce INTERFACE)
+foreach(module ${JUCE_AVAILABLE_MODULES})
+    target_link_libraries(juce INTERFACE "${module}")
+endforeach()
 
-    message("${JUCE_OSXFrameworks}")
-
-    # platform dependencies
-    list(REMOVE_DUPLICATES JUCE_OSXFrameworks)
-    list(REMOVE_DUPLICATES JUCE_iOSFrameworks)
-    if(MACOSX)
-        target_link_libraries(juce "${JUCE_OSXFrameworks}")
-    elseif(IOS)
-        target_link_libraries(juce "${JUCE_iOSFrameworks}")
-    endif()
-    message("${JUCE_INCLUDES}")
-    target_include_directories(juce PUBLIC ${JUCE_INCLUDES})
-else()
-    add_library(juce INTERFACE)
-    foreach(module ${JUCE_AVAILABLE_MODULES})
-        target_link_libraries(juce INTERFACE "${module}")
-    endforeach()
-endif()
+source_group(JuceLibraryCode FILES ${JUCE_SOURCES})
