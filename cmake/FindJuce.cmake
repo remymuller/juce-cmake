@@ -160,7 +160,7 @@ macro(juce_add_module module)
 		# generate INTERFACE library for module
 		add_library(${module} INTERFACE)
 		target_sources(${module} INTERFACE ${JUCE_${module}_SOURCES})
-    	#target_link_libraries(${module} INTERFACE juce_common)
+    	target_link_libraries(${module} INTERFACE juce_common)
 
     	# set global variables
 		set(JUCE_${module}_FOUND true)
@@ -192,12 +192,62 @@ set(JUCE_INCLUDE_DIR ${JUCE_MODULES_PREFIX})
 
 #------------------------------------------------------------------------------
 
+# then define common target
+add_library(juce_common INTERFACE)
+target_include_directories(juce_common INTERFACE ${JUCE_INCLUDES})
+target_compile_features(juce_common INTERFACE cxx_auto_type cxx_constexpr)
+set_target_properties(juce_common PROPERTIES
+    INTERFACE_COMPILE_DEFINITIONS         NDEBUG
+    INTERFACE_COMPILE_DEFINITIONS_DEBUG   DEBUG
+    INTERFACE_COMPILE_DEFINITIONS_RELEASE NDEBUG
+)
+
+#------------------------------------------------------------------------------
+
 # then find components
 set(JUCE_LIBRARIES "")
 set(JUCE_SOURCES "")
 foreach(module ${JUCE_FIND_COMPONENTS})
 	juce_add_module(${module})
 endforeach()
+
+#------------------------------------------------------------------------------
+# now generate AppConfig.h
+
+# generate module defineoptions
+set(JUCE_MODULE_AVAILABLE_DEFINE_LIST "")
+foreach(module ${JUCE_LIBRARIES})
+	if(JUCE__AVAILABLE_${module})
+		string(APPEND JUCE_MODULE_AVAILABLE_DEFINE_LIST "#define JUCE_MODULE_AVAILABLE_${module}\t1\n")
+	else()
+		string(APPEND JUCE_MODULE_AVAILABLE_DEFINE_LIST "#define JUCE_MODULE_AVAILABLE_${module}\t0\n")
+	endif()
+endforeach()
+unset(JUCE_MODULE_AVAILABLE_DEFINE_LIST)
+
+set(JUCE_APPCONFIG_H "${PROJECT_BINARY_DIR}/JuceLibraryCode/AppConfig.h")
+configure_file("${CMAKE_CURRENT_LIST_DIR}/templates/AppConfig.h.in" ${JUCE_APPCONFIG_H})
+list(APPEND JUCE_INCLUDES "${PROJECT_BINARY_DIR}/JuceLibraryCode")
+
+
+# and generate JuceHeader.h
+set(JUCE_MODULE_INCLUDES_LIST "")
+foreach(module ${JUCE_LIBRARIES})
+    if(JUCE_MODULE_AVAILABLE_${module})
+        string(APPEND JUCE_MODULE_INCLUDES_LIST "#include <${module}/${module}.h>\n")
+    endif()
+endforeach()
+unset(JUCE_MODULE_INCLUDES_LIST)
+
+set(JUCE_HEADER_H "${PROJECT_BINARY_DIR}/JuceLibraryCode/JuceHeader.h")
+configure_file("${CMAKE_CURRENT_LIST_DIR}/templates/JuceHeader.h.in" ${JUCE_HEADER_H})
+
+#------------------------------------------------------------------------------
+
+# update common sources
+target_sources(juce_common INTERFACE ${JUCE_APPCONFIG_H} ${JUCE_HEADER_H})
+list(APPEND JUCE_SOURCES ${JUCE_APPCONFIG_H} ${JUCE_HEADER_H})
+
 
 #------------------------------------------------------------------------------
 # for each library 

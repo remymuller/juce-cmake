@@ -24,8 +24,7 @@ set(SOURCES
 # set(JUCE_PROJECT_NAME HelloWorld)
 # set(JUCE_MODULE_AVAILABLE_juce_opengl OFF)
 add_executable(HelloWorld ${SOURCES})
-source_group(Source FILES ${SOURCES})
+set_target_properties(HelloWorld PROPERTIES MACOSX_BUNDLE true)
 target_link_libraries(HelloWorld ${JUCE_LIBRARIES})
-
-# set_target_properties(HelloWorld PROPERTIES MACOSX_BUNDLE true)
+source_group(Source FILES ${SOURCES})
 # target_compile_features(HelloWorld INTERFACE cxx_auto_type cxx_constexpr)
