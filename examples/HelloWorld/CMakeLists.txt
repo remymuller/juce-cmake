@@ -12,9 +12,6 @@ find_package(JUCE REQUIRED
 		juce_gui_extra
 )
 
-# set(CMAKE_CXX_STANDARD 14)
-# set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 set(SOURCES
 	Main.cpp
 	MainComponent.h
@@ -22,9 +19,7 @@ set(SOURCES
 )
 
 # set(JUCE_PROJECT_NAME HelloWorld)
-# set(JUCE_MODULE_AVAILABLE_juce_opengl OFF)
 add_executable(HelloWorld ${SOURCES})
 set_target_properties(HelloWorld PROPERTIES MACOSX_BUNDLE true)
 target_link_libraries(HelloWorld ${JUCE_LIBRARIES})
 source_group(Source FILES ${SOURCES})
-# target_compile_features(HelloWorld INTERFACE cxx_auto_type cxx_constexpr)
