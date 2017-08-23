@@ -6,4 +6,4 @@
 */
 
 #include "AppConfig.h"
-#include <${module}/${module_source_basename}.cpp>
+#include <${JUCE_CURRENT_MODULE}/${module_source_basename}.cpp>

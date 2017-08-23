@@ -31,22 +31,11 @@
 
 #------------------------------------------------------------------------------
 # helpers
-
-# function(juce_module_get_array_property var property module_header)
-# 	set(pattern "^.*${property}: *(.*)$")
-# 	set(${property} "" PARENT_SCOPE)
-
-# 	foreach(line ${lines})
-# 		if(line MATCHES ${pattern})
-# 			string(REGEX REPLACE ${pattern} "\\1" var_raw "${line}")
-# 			string(REGEX REPLACE " |," ";" var_clean "${var_raw}")
-# 			set(${var} ${var_clean} PARENT_SCOPE)
-# 		endif()
-# 	endforeach() 
-# endfunction()
-
+#------------------------------------------------------------------------------
 
 function(juce_module_declaration_set_properties prefix module_declaration properties)
+	# 
+	# 
 
 	foreach(property ${properties})
 		set(${prefix}_${property} "" PARENT_SCOPE)
@@ -93,8 +82,13 @@ function(juce_module_get_info module_header)
 	set(properties 
 		dependencies 
 		OSXFrameworks 
+		OSXLibs
 		iOSFrameworks 
+		iOSLibs
 		linuxLibs
+		windowsLibs
+		minimumCppStandard
+		searchpaths
 	)
 	set(prefix JUCE_${module})
 	juce_module_declaration_set_properties(${prefix} "${JUCE_${module}_declaration}" "${properties}")
@@ -104,6 +98,32 @@ function(juce_module_get_info module_header)
 		set(JUCE_${module}_${property} ${JUCE_${module}_${property}} PARENT_SCOPE)
 	endforeach()
 endfunction()
+
+
+macro(juce_module_set_platformlibs module)
+	set(JUCE_${module}_platformlibs "")
+
+	if(APPLE_IOS OR IOS OR ${CMAKE_SYSTEM_NAME} MATCHES iOS)
+		set(_libs ${JUCE_${module}_iOSFrameworks} ${JUCE_${module}_iOSLibs})
+	elseif(APPLE)
+		set(_libs ${JUCE_${module}_OSXFrameworks} ${JUCE_${module}_OSXLibs})
+	elseif(WINDOWS)
+		set(_libs ${JUCE_${module}_windowsLibs})
+	#elseif(Android)
+	elseif(Linux)
+		set(_libs ${JUCE_${module}_linuxLibs})
+	else()
+	endif()
+
+	foreach(_lib ${_libs})
+		find_library(JUCE_LIB_${_lib} ${_lib})
+		list(APPEND JUCE_${module}_platformlibs ${JUCE_LIB_${_lib}})
+	endforeach()
+
+	unset(_lib)
+	unset(_libs)
+
+endmacro()
 
 #------------------------------------------------------------------------------
 
@@ -118,6 +138,7 @@ macro(juce_add_module module)
 		set(JUCE_${module}_HEADER "${JUCE_MODULES_PREFIX}/${module}/${module}.h")
 
 		juce_module_get_info(JUCE_${module}_INFO ${JUCE_${module}_HEADER})
+		juce_module_set_platformlibs(${module})
 
 		# debug
 		# set(properties 
@@ -147,6 +168,7 @@ macro(juce_add_module module)
 			endif()
 
 		    set(JUCE_${module}_current_source "${PROJECT_BINARY_DIR}/JuceLibraryCode/include_${module_source_basename}.${_ext}")
+		    set(JUCE_CURRENT_MODULE ${module})
 			configure_file(
 				"${CMAKE_CURRENT_LIST_DIR}/templates/include_juce_module.cpp.in" 				
 				"${JUCE_${module}_current_source}"
@@ -159,8 +181,12 @@ macro(juce_add_module module)
 
 		# generate INTERFACE library for module
 		add_library(${module} INTERFACE)
+		target_include_directories(${module} INTERFACE ${JUCE_${module}_searchpaths})
 		target_sources(${module} INTERFACE ${JUCE_${module}_SOURCES})
     	target_link_libraries(${module} INTERFACE juce_common)
+	    target_link_libraries(${module} INTERFACE "${JUCE_${module}_dependencies}")
+	    message("${JUCE_${module}_platformlibs}")
+	    target_link_libraries(${module} INTERFACE "${JUCE_${module}_platformlibs}")
 
     	# set global variables
 		set(JUCE_${module}_FOUND true)
@@ -189,6 +215,9 @@ find_path(JUCE_PATH
 )
 set(JUCE_MODULES_PREFIX "${JUCE_PATH}/modules")
 set(JUCE_INCLUDE_DIR ${JUCE_MODULES_PREFIX})
+set(JUCE_INCLUDES ${JUCE_INCLUDE_DIR} "${PROJECT_BINARY_DIR}/JuceLibraryCode")
+
+# detect platform
 
 #------------------------------------------------------------------------------
 
@@ -251,13 +280,18 @@ list(APPEND JUCE_SOURCES ${JUCE_APPCONFIG_H} ${JUCE_HEADER_H})
 
 #------------------------------------------------------------------------------
 # for each library 
-# add AppConfig, JuceHeader...
 # handle dependencies
 
 #------------------------------------------------------------------------------
-
+# organize sources in IDE
 source_group(JuceLibraryCode FILES ${JUCE_SOURCES})
+
+#------------------------------------------------------------------------------
 
 # finalize
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(JUCE DEFAULT_MSG JUCE_INCLUDE_DIR JUCE_LIBRARIES JUCE_SOURCES)
+find_package_handle_standard_args(JUCE DEFAULT_MSG 
+	JUCE_INCLUDE_DIR 
+	JUCE_LIBRARIES 
+	JUCE_SOURCES
+)
