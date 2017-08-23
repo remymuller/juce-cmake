@@ -74,7 +74,7 @@ function(juce_module_get_declaration module_info module_header)
 endfunction()
 
 
-function(juce_module_get_info module_header)
+function(juce_module_get_info module)
 	# get parsed module declaration as lines
 	juce_module_get_declaration(JUCE_${module}_declaration ${JUCE_${module}_HEADER})
 
@@ -96,6 +96,7 @@ function(juce_module_get_info module_header)
 	# forward properties to parent scope
 	foreach(property ${properties})
 		set(JUCE_${module}_${property} ${JUCE_${module}_${property}} PARENT_SCOPE)
+        #message("JUCE_${module}_${property}:\t${JUCE_${module}_${property}}")
 	endforeach()
 endfunction()
 
@@ -137,7 +138,7 @@ macro(juce_add_module module)
 
 		set(JUCE_${module}_HEADER "${JUCE_MODULES_PREFIX}/${module}/${module}.h")
 
-		juce_module_get_info(JUCE_${module}_INFO ${JUCE_${module}_HEADER})
+		juce_module_get_info(${module})
 		juce_module_set_platformlibs(${module})
 
 		# debug
