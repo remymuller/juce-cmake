@@ -185,7 +185,7 @@ macro(juce_add_module module)
 		target_sources(${module} INTERFACE ${JUCE_${module}_SOURCES})
     	target_link_libraries(${module} INTERFACE juce_common)
 	    target_link_libraries(${module} INTERFACE "${JUCE_${module}_dependencies}")
-	    message("${JUCE_${module}_platformlibs}")
+	    #message("${JUCE_${module}_platformlibs}")
 	    target_link_libraries(${module} INTERFACE "${JUCE_${module}_platformlibs}")
 
     	# set global variables
@@ -216,8 +216,6 @@ find_path(JUCE_PATH
 set(JUCE_MODULES_PREFIX "${JUCE_PATH}/modules")
 set(JUCE_INCLUDE_DIR ${JUCE_MODULES_PREFIX})
 set(JUCE_INCLUDES ${JUCE_INCLUDE_DIR} "${PROJECT_BINARY_DIR}/JuceLibraryCode")
-
-# detect platform
 
 #------------------------------------------------------------------------------
 
