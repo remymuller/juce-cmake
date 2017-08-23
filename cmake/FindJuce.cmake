@@ -223,11 +223,6 @@ set(JUCE_INCLUDES ${JUCE_INCLUDE_DIR} "${PROJECT_BINARY_DIR}/JuceLibraryCode")
 add_library(juce_common INTERFACE)
 target_include_directories(juce_common INTERFACE ${JUCE_INCLUDES})
 target_compile_features(juce_common INTERFACE cxx_auto_type cxx_constexpr)
-# set_target_properties(juce_common PROPERTIES
-#    INTERFACE_COMPILE_DEFINITIONS         NDEBUG
-    # INTERFACE_COMPILE_DEFINITIONS_DEBUG   DEBUG
-#    INTERFACE_COMPILE_DEFINITIONS_RELEASE NDEBUG
-# )
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 
