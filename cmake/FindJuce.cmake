@@ -27,6 +27,7 @@
 #   JUCE_MAJOR_VERSION      - JUCE major version number (X in X.y.z)
 #   JUCE_MINOR_VERSION      - JUCE minor version number (Y in x.Y.z)
 #   JUCE_SUBMINOR_VERSION   - JUCE subminor version number (Z in x.y.Z)
+#   JUCE_CONFIG_<C>         - Juce Config for variable <C>
 
 
 #------------------------------------------------------------------------------
@@ -126,6 +127,46 @@ macro(juce_module_set_platformlibs module)
 
 endmacro()
 
+
+function(juce_module_get_config_flags module)
+    # 
+    # Parses the module header for Config flags patterns.
+    # 
+    # Example:
+    #   /** Config: JUCE_ALSA
+    #       Enables ALSA audio devices (Linux only).
+    #   */
+    #   #ifndef JUCE_ALSA
+    #   #define JUCE_ALSA 1
+    #   #endif
+
+    set(pattern "/\\*\\* *Config: *(JUCE_[_a-zA-Z]+)[ \n]")
+
+    set(header ${JUCE_${module}_HEADER})
+    file(READ ${header} text)
+
+    # split block into lines
+    #string(REGEX REPLACE "\r?\n" ";" lines ${text})
+
+    set(flags "")
+    string(REGEX MATCHALL ${pattern} matches ${text})
+    foreach(match ${matches})
+        string(REGEX REPLACE ${pattern} "\\1" flag ${match})
+        list(APPEND flags ${flag})
+    endforeach()
+
+    set(JUCE_${module}_CONFIG_FLAGS ${flags} PARENT_SCOPE)
+
+    foreach(flag ${flags})
+        set(JUCE_CONFIG_${flag} default CACHE STRING "")
+        set_property(
+            CACHE JUCE_CONFIG_${flag} 
+            PROPERTY STRINGS "Default;Enabled;Disabled"
+        )
+    endforeach()
+
+endfunction()
+
 #------------------------------------------------------------------------------
 
 macro(juce_add_module module)
@@ -140,6 +181,7 @@ macro(juce_add_module module)
 
 		juce_module_get_info(${module})
 		juce_module_set_platformlibs(${module})
+        juce_module_get_config_flags(${module})
 
 		# debug
 		# set(properties 
