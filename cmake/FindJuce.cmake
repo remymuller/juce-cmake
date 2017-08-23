@@ -233,14 +233,14 @@ list(APPEND JUCE_INCLUDES "${PROJECT_BINARY_DIR}/JuceLibraryCode")
 # and generate JuceHeader.h
 set(JUCE_MODULE_INCLUDES_LIST "")
 foreach(module ${JUCE_LIBRARIES})
-    if(JUCE_MODULE_AVAILABLE_${module})
+    if(TARGET ${module})
         string(APPEND JUCE_MODULE_INCLUDES_LIST "#include <${module}/${module}.h>\n")
     endif()
 endforeach()
-unset(JUCE_MODULE_INCLUDES_LIST)
 
 set(JUCE_HEADER_H "${PROJECT_BINARY_DIR}/JuceLibraryCode/JuceHeader.h")
 configure_file("${CMAKE_CURRENT_LIST_DIR}/templates/JuceHeader.h.in" ${JUCE_HEADER_H})
+unset(JUCE_MODULE_INCLUDES_LIST)
 
 #------------------------------------------------------------------------------
 
