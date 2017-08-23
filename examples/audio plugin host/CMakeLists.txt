@@ -1,10 +1,29 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(PluginHost)
+set(JUCE_PROJECT_NAME PluginHost)
+project(${JUCE_PROJECT_NAME})
 
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/../../cmake")
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+find_package(JUCE REQUIRED 
+	COMPONENTS 
+		juce_audio_basics
+		juce_audio_devices
+		juce_audio_formats
+		juce_audio_processors
+		juce_audio_utils
+		juce_core
+		juce_cryptography
+		juce_data_structures
+		juce_events
+		juce_graphics
+		juce_gui_basics
+		juce_gui_extra
+		juce_opengl
+		juce_video
+)
+
+# set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/../../cmake")
+# set(CMAKE_CXX_STANDARD 14)
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SOURCES
 	Source/FilterGraph.cpp
@@ -21,16 +40,17 @@ set(SOURCES
 	Source/MainHostWindow.h
 )
 
-set(JUCE_PROJECT_NAME PluginHost)
-set(JUCE_MODULE_AVAILABLE_juce_opengl ON)
-set(JUCE_MODULE_AVAILABLE_juce_box2D OFF)
-add_subdirectory("${PROJECT_SOURCE_DIR}/../../" "${PROJECT_BINARY_DIR}/juce")
-#include(UseJuce)
-add_executable(PluginHost ${SOURCES})
+add_executable(${JUCE_PROJECT_NAME} ${SOURCES})
+set_target_properties(${JUCE_PROJECT_NAME} PROPERTIES MACOSX_BUNDLE true)
+target_link_libraries(${JUCE_PROJECT_NAME} ${JUCE_LIBRARIES})
 source_group(Source FILES ${SOURCES})
-target_link_libraries(PluginHost juce)
-target_compile_definitions(PluginHost PUBLIC JUCE_PLUGINHOST_VST=1)
-set_target_properties(PluginHost PROPERTIES MACOSX_BUNDLE true)
-target_compile_features(PluginHost INTERFACE cxx_auto_type cxx_constexpr)
+target_compile_definitions(${JUCE_PROJECT_NAME} 
+	PUBLIC 
+		JUCE_PLUGINHOST_VST=1 
+		JUCE_WASAPI=1 
+		JUCE_DIRECTSOUND=1 
+		#JUCE_PLUGINHOST_VST3=1
+		#JUCE_PLUGINHOST_AU=1
+		JUCE_ALSA=1
+)
 
-source_group(JuceLibraryCode FILES ${JUCE_SOURCES})
