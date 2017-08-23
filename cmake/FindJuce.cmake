@@ -145,9 +145,6 @@ function(juce_module_get_config_flags module)
     set(header ${JUCE_${module}_HEADER})
     file(READ ${header} text)
 
-    # split block into lines
-    #string(REGEX REPLACE "\r?\n" ";" lines ${text})
-
     set(flags "")
     string(REGEX MATCHALL ${pattern} matches ${text})
     foreach(match ${matches})
