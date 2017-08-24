@@ -14,7 +14,6 @@ set(SOURCES
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-set_target_properties(${PROJECT_NAME} PROPERTIES MACOSX_BUNDLE true)
 target_link_libraries(${PROJECT_NAME} ${JUCE_LIBRARIES})
 target_compile_definitions(${PROJECT_NAME} 
 	PUBLIC 
