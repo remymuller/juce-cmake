@@ -346,6 +346,15 @@ foreach(module ${JUCE_LIBRARIES})
 	endif()
 endforeach()
 
+# TODO: try to rely on target_compile_definitions to set those globally instead of populating the AppConfig file
+# and avoid using the cache to allow for multiple calls to find_package(JUCE) with different options.
+# Example:
+#   target_compile_definitions(${PROJECT_NAME} 
+#       PUBLIC 
+#           JUCE_ASIO=1
+#           JUCE_ONLY_BUILD_CORE_LIBRARY=1
+#   ) 
+
 set(JUCE_APPCONFIG_H "${PROJECT_BINARY_DIR}/JuceLibraryCode/AppConfig.h")
 configure_file("${CMAKE_CURRENT_LIST_DIR}/FindJuceTemplates/AppConfig.h.in" ${JUCE_APPCONFIG_H})
 list(APPEND JUCE_INCLUDES "${PROJECT_BINARY_DIR}/JuceLibraryCode")
