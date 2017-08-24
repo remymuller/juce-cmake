@@ -220,13 +220,17 @@ macro(juce_add_module module)
 		endforeach()
 
 		# generate INTERFACE library for module
+        # TODO: use IMPORTED target https://cmake.org/cmake/help/v3.9/manual/cmake-buildsystem.7.html#imported-targets
 		add_library(${module} INTERFACE)
 		target_include_directories(${module} INTERFACE ${JUCE_${module}_searchpaths})
-		target_sources(${module} INTERFACE ${JUCE_${module}_SOURCES})
     	target_link_libraries(${module} INTERFACE juce_common)
 	    target_link_libraries(${module} INTERFACE "${JUCE_${module}_dependencies}")
 	    #message("${JUCE_${module}_platformlibs}")
 	    target_link_libraries(${module} INTERFACE "${JUCE_${module}_platformlibs}")
+
+        # but this lines conflicts with IMPORTED https://cmake.org/cmake/help/v3.1/command/target_sources.html
+        target_sources(${module} INTERFACE ${JUCE_${module}_SOURCES}) 
+
 
     	# set global variables
 		set(JUCE_${module}_FOUND true)
@@ -299,7 +303,7 @@ function(juce_gen_config_flags_str var)
                     "#ifndef    ${_flag}\n"
                 )
 
-                message("${JUCE_CONFIG_${_flag}}")
+                #message("${JUCE_CONFIG_${_flag}}")
 
                 if(${JUCE_CONFIG_${_flag}} MATCHES ON)
                     string(APPEND str  
