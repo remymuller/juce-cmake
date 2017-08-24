@@ -3,4 +3,15 @@ project(juce)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/cmake")
 
-add_subdirectory(examples/HelloWorld "${PROJECT_BINARY_DIR}/HelloWorld")
+macro(add_project path)
+	add_subdirectory("${path}" "${PROJECT_BINARY_DIR}/${path}")
+endmacro()
+
+# add_project("examples/HelloWorld")
+# add_project("examples/audio plugin host")
+# add_project("examples/PluckedStringsDemo")
+# add_project("examples/AnimationAppExample")
+#add_project("examples/Demo")
+#add_project("examples/DSPDemo")
+#add_project("examples/MidiTest")
+add_project("examples/OpenGLAppExample")
