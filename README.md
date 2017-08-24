@@ -3,15 +3,16 @@ juce-cmake
 
 This project is another attempt at providing [CMake][cmake] support for the [JUCE][juce] library. 
 
-Compared to other similar projects, this one autogenerates the list of juce modules by inspecting its repository.
+Compared to other similar projects, this one autogenerates the list of JUCE modules by inspecting its repository.
 It is also inspired by the standard CMake module [FindBoost][find_boost].
 
-Thanks to the simple [juce module format][juce_module_format], intermodule and external dependencies are resolved by parsing the module info and config flags from each module header file. This is similar to how the Projucer handles modules.
+Thanks to the simple [JUCE Module Format][juce_module_format] specifications, intermodule and external dependencies are resolved by inspecting each module header file for properties and configuration flags. This is similar to the way the Projucer handles modules.
 
-Compared to [Juce.cmake][juce_dot_cmake] which is similar and more advanced, there is a number of design differences:
-* It is meant to be used with pure cmake based projects without having to rely on the Projucer to bootstrap projects.
+Compared to [JUCE.cmake][juce_dot_cmake] which is similar and more advanced, there is a number of design differences:
+* It is meant to be used with pure CMake based projects without having to rely on the Projucer to bootstrap projects.
 * It relies on [find_package][find_package](JUCE COMPONENTS ${modules}) to configure [JUCE][juce].
-* It uses CMake [INTERFACE][interface] targets for each module to propagate the transitive dependencies
+* It uses CMake [INTERFACE][interface] targets for each module to propagate the transitive dependencies.
+* It tries to only rely on standard CMake constructs as much as possible.
 
 Example
 -------
