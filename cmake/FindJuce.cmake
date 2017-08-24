@@ -278,20 +278,73 @@ endforeach()
 #------------------------------------------------------------------------------
 # now generate AppConfig.h
 
+function(juce_gen_config_flags_str var)
+    set(str "")
+
+    foreach(module ${JUCE_LIBRARIES})
+        if(TARGET ${module})
+            string(LENGTH "${JUCE_${module}_CONFIG_FLAGS}" len)
+            if(NOT ${len})
+                continue()
+            endif()
+
+            string(APPEND str            
+                "//==============================================================================\n"
+                "// ${module} flags:\n"
+                "\n"
+            )
+
+            foreach(_flag ${JUCE_${module}_CONFIG_FLAGS})
+                string(APPEND str            
+                    "#ifndef    ${_flag}\n"
+                )
+
+                if(JUCE_CONFIG_{_flag} EQUAL "Enabled")
+                    string(APPEND str  
+                        "#define ${_flag} 1\n"          
+                    )
+                elseif(JUCE_CONFIG_{_flag} EQUAL "Disabled")
+                    string(APPEND str      
+                        "#define ${_flag} 0\n"          
+                    )
+                else()
+                    string(APPEND str   
+                        "  // #define ${_flag} 1\n"          
+                    )
+                endif()
+
+                string(APPEND str
+                    "#endif\n"
+                    "\n"
+                )
+            endforeach()
+        endif()
+    endforeach()    
+
+    set(${var} ${str} PARENT_SCOPE)
+endfunction()
+
 # generate module defineoptions
+juce_gen_config_flags_str(JUCE_CONFIG_FLAGS_STR)
 set(JUCE_MODULE_AVAILABLE_DEFINE_LIST "")
+
 foreach(module ${JUCE_LIBRARIES})
-	if(JUCE__AVAILABLE_${module})
-		string(APPEND JUCE_MODULE_AVAILABLE_DEFINE_LIST "#define JUCE_MODULE_AVAILABLE_${module}\t1\n")
+	if(TARGET ${module})
+		string(APPEND JUCE_MODULE_AVAILABLE_DEFINE_LIST 
+            "#define JUCE_MODULE_AVAILABLE_${module}\t1\n"
+        )
 	else()
-		string(APPEND JUCE_MODULE_AVAILABLE_DEFINE_LIST "#define JUCE_MODULE_AVAILABLE_${module}\t0\n")
+		string(APPEND JUCE_MODULE_AVAILABLE_DEFINE_LIST 
+            "#define JUCE_MODULE_AVAILABLE_${module}\t0\n"
+        )
 	endif()
 endforeach()
-unset(JUCE_MODULE_AVAILABLE_DEFINE_LIST)
 
 set(JUCE_APPCONFIG_H "${PROJECT_BINARY_DIR}/JuceLibraryCode/AppConfig.h")
 configure_file("${CMAKE_CURRENT_LIST_DIR}/templates/AppConfig.h.in" ${JUCE_APPCONFIG_H})
 list(APPEND JUCE_INCLUDES "${PROJECT_BINARY_DIR}/JuceLibraryCode")
+unset(JUCE_MODULE_AVAILABLE_DEFINE_LIST)
+unset(JUCE_CONFIG_FLAGS_STR)
 
 
 # and generate JuceHeader.h
