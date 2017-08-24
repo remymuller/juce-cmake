@@ -210,7 +210,7 @@ macro(juce_add_module module)
 		    set(JUCE_${module}_current_source "${PROJECT_BINARY_DIR}/JuceLibraryCode/include_${module_source_basename}.${_ext}")
 		    set(JUCE_CURRENT_MODULE ${module})
 			configure_file(
-				"${CMAKE_CURRENT_LIST_DIR}/templates/include_juce_module.cpp.in" 				
+				"${CMAKE_CURRENT_LIST_DIR}/FindJuceTemplates/include_juce_module.cpp.in" 				
 				"${JUCE_${module}_current_source}"
 			)
 			list(APPEND JUCE_${module}_SOURCES "${JUCE_${module}_current_source}")
@@ -347,7 +347,7 @@ foreach(module ${JUCE_LIBRARIES})
 endforeach()
 
 set(JUCE_APPCONFIG_H "${PROJECT_BINARY_DIR}/JuceLibraryCode/AppConfig.h")
-configure_file("${CMAKE_CURRENT_LIST_DIR}/templates/AppConfig.h.in" ${JUCE_APPCONFIG_H})
+configure_file("${CMAKE_CURRENT_LIST_DIR}/FindJuceTemplates/AppConfig.h.in" ${JUCE_APPCONFIG_H})
 list(APPEND JUCE_INCLUDES "${PROJECT_BINARY_DIR}/JuceLibraryCode")
 unset(JUCE_MODULE_AVAILABLE_DEFINE_LIST)
 unset(JUCE_CONFIG_FLAGS_STR)
@@ -362,7 +362,7 @@ foreach(module ${JUCE_LIBRARIES})
 endforeach()
 
 set(JUCE_HEADER_H "${PROJECT_BINARY_DIR}/JuceLibraryCode/JuceHeader.h")
-configure_file("${CMAKE_CURRENT_LIST_DIR}/templates/JuceHeader.h.in" ${JUCE_HEADER_H})
+configure_file("${CMAKE_CURRENT_LIST_DIR}/FindJuceTemplates/JuceHeader.h.in" ${JUCE_HEADER_H})
 unset(JUCE_MODULE_INCLUDES_LIST)
 
 #------------------------------------------------------------------------------
