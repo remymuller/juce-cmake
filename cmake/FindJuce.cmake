@@ -158,7 +158,7 @@ function(juce_module_get_config_flags module)
         set(JUCE_CONFIG_${flag} default CACHE STRING "")
         set_property(
             CACHE JUCE_CONFIG_${flag} 
-            PROPERTY STRINGS "Default;Enabled;Disabled"
+            PROPERTY STRINGS "default;ON;OFF"
         )
     endforeach()
 
@@ -299,13 +299,15 @@ function(juce_gen_config_flags_str var)
                     "#ifndef    ${_flag}\n"
                 )
 
-                if(JUCE_CONFIG_{_flag} EQUAL "Enabled")
+                message("${JUCE_CONFIG_${_flag}}")
+
+                if(${JUCE_CONFIG_${_flag}} MATCHES ON)
                     string(APPEND str  
-                        "#define ${_flag} 1\n"          
+                        "  #define ${_flag} 1\n"          
                     )
-                elseif(JUCE_CONFIG_{_flag} EQUAL "Disabled")
+                elseif(${JUCE_CONFIG_${_flag}} MATCHES OFF)
                     string(APPEND str      
-                        "#define ${_flag} 0\n"          
+                        "  #define ${_flag} 0\n"          
                     )
                 else()
                     string(APPEND str   
