@@ -12,7 +12,7 @@ Compared to [JUCE.cmake][juce_dot_cmake] which is similar and more advanced, the
 * It is meant to be used with pure CMake based projects without having to rely on the Projucer to bootstrap projects.
 * It relies on [find_package][find_package] to locate and configure [JUCE][juce].
 * It uses CMake [INTERFACE][interface] targets for each module to propagate the transitive dependencies.
-* It tries to only rely on standard CMake constructs as much as possible.
+* It tries to rely on standard CMake constructs instead of dedicated helper functions as much as possible.
 
 Example
 -------
