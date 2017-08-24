@@ -5,7 +5,9 @@ This project is an attempt at providing [CMake][cmake] support for the [JUCE][ju
 
 Thanks to the simple [JUCE Module Format][juce_module_format] specifications, intermodule and external dependencies are resolved by inspecting each module header file for properties and configuration flags. This is similar to the way the Projucer handles modules.
 
-Here are some of the design goals:
+Design goals
+------------
+
 * Avoid having to rely on the Projucer and allow pure CMake builds.
 * Try to favour standard CMake constructs over helper functions as much as possible.
 * Rely on [find_package][find_package] to locate and configure [JUCE][juce].
