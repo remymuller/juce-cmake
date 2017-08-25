@@ -462,7 +462,8 @@ foreach(module ${JUCE_MODULES})
         set(JUCE_CXX_STANDARD ${JUCE_${module}_minimumCppStandard})
     endif()
 endforeach()
-message("using CXX: ${JUCE_CXX_STANDARD}")
+#message("using CXX: ${JUCE_CXX_STANDARD}")
+
 
 # create unique merge target per binary directory
 string(MD5 juce_target_md5 "${PROJECT_BINARY_DIR}")
