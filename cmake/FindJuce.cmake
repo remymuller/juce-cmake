@@ -111,6 +111,8 @@ function(juce_module_get_info module)
 		set(JUCE_${module}_${property} ${JUCE_${module}_${property}} PARENT_SCOPE)
         #message("JUCE_${module}_${property}:\t${JUCE_${module}_${property}}")
 	endforeach()
+
+    set(JUCE_${module}_minimumCppStandard ${JUCE_${module}_minimumCppStandard} CACHE STRING "")
 endfunction()
 
 #------------------------------------------------------------------------------
@@ -298,8 +300,10 @@ macro(juce_add_module module)
         mark_as_advanced(JUCE_${module}_HEADER)
 
 		juce_module_get_info(${module})
+
 		juce_module_set_platformlibs(${module})
         juce_module_get_config_flags(${module})
+
 
 		# debug
 		# set(properties 
@@ -321,6 +325,7 @@ macro(juce_add_module module)
                     "${JUCE_${module}_dependencies}"
                     "${JUCE_${module}_platformlibs}"
             )
+
             # set_property(TARGET ${module} PROPERTY INTERFACE_COMPILE_OPTIONS)
             # set_property(TARGET ${module} PROPERTY INTERFACE_COMPILE_DEFINITIONS)
         else()
@@ -449,6 +454,16 @@ foreach(module ${JUCE_MODULES})
     endforeach()
 endforeach()
 
+# look for required CXX standard
+set(JUCE_CXX_STANDARD 11)
+foreach(module ${JUCE_MODULES})
+    # check for required C++ version
+    if("${JUCE_${module}_minimumCppStandard}" GREATER ${JUCE_CXX_STANDARD})
+        set(JUCE_CXX_STANDARD ${JUCE_${module}_minimumCppStandard})
+    endif()
+endforeach()
+message("using CXX: ${JUCE_CXX_STANDARD}")
+
 # create unique merge target per binary directory
 string(MD5 juce_target_md5 "${PROJECT_BINARY_DIR}")
 set(JUCE_TARGET juce-${juce_target_md5})
@@ -457,6 +472,9 @@ add_library(${JUCE_TARGET} INTERFACE)
 target_include_directories(${JUCE_TARGET} INTERFACE ${JuceLibraryCode})
 target_link_libraries(${JUCE_TARGET} INTERFACE juce_common ${JUCE_MODULES})
 target_sources(${JUCE_TARGET} INTERFACE ${JUCE_SOURCES})
+
+# set CXX standard
+target_compile_features(${JUCE_TARGET} INTERFACE cxx_std_${JUCE_CXX_STANDARD})
 
 # export this target to be linked by client code
 set(JUCE_LIBRARIES ${JUCE_TARGET})
