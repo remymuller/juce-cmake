@@ -38,9 +38,9 @@
 #   but a unique 'merge' target with sources to be built and only the requested 
 #   components is created each time.
 # 
-#   Config Flags can be set globally for all calld to find_package(JUCE) using the 
+#   Config Flags can be set globally for all calls to find_package(JUCE) using the 
 #   cache variables JUCE_CONFIG_<flag>, but they can be overriden locally by 
-#   defining <flag> before any call to find_package(JUCE)
+#   using target_compile_definitions(target "JUCE_<flag>=1")
 
 
 #------------------------------------------------------------------------------
@@ -48,9 +48,6 @@
 #------------------------------------------------------------------------------
 
 function(juce_module_declaration_set_properties prefix module_declaration properties)
-	# 
-	# 
-
 	foreach(property ${properties})
 		set(${prefix}_${property} "" PARENT_SCOPE)
 
@@ -72,6 +69,7 @@ function(juce_module_declaration_set_properties prefix module_declaration proper
 	endforeach() 
 endfunction()
 
+#------------------------------------------------------------------------------
 
 function(juce_module_get_declaration module_info module_header)
 	file(READ ${module_header} text)
@@ -87,6 +85,7 @@ function(juce_module_get_declaration module_info module_header)
 	set(${module_info} ${module_declaration_lines} PARENT_SCOPE)
 endfunction()
 
+#------------------------------------------------------------------------------
 
 function(juce_module_get_info module)
 	# get parsed module declaration as lines
@@ -114,6 +113,7 @@ function(juce_module_get_info module)
 	endforeach()
 endfunction()
 
+#------------------------------------------------------------------------------
 
 macro(juce_module_set_platformlibs module)
 	set(JUCE_${module}_platformlibs "")
@@ -142,6 +142,7 @@ macro(juce_module_set_platformlibs module)
 	unset(_libs)
 endmacro()
 
+#------------------------------------------------------------------------------
 
 function(juce_module_get_config_flags module)
     # 
@@ -181,6 +182,8 @@ function(juce_module_get_config_flags module)
     endforeach()
 
 endfunction()
+
+#------------------------------------------------------------------------------
 
 function(juce_gen_config_flags_str var)
     set(str "")
@@ -240,6 +243,46 @@ function(juce_gen_config_flags_str var)
     set(${var} ${str} PARENT_SCOPE)
 endfunction()
 
+#------------------------------------------------------------------------------
+
+function(juce_generate_app_config output_file)
+    # generate module defineoptions
+    juce_gen_config_flags_str(JUCE_CONFIG_FLAGS)
+    set(JUCE_MODULES_AVAILABLE "")
+
+    foreach(module ${JUCE_MODULES})
+        if(TARGET ${module})
+            string(APPEND JUCE_MODULES_AVAILABLE 
+                "#define JUCE_MODULE_AVAILABLE_${module}\t1\n"
+            )
+        else()
+            string(APPEND JUCE_MODULES_AVAILABLE 
+                "#define JUCE_MODULE_AVAILABLE_${module}\t0\n"
+            )
+        endif()
+    endforeach()
+
+    configure_file("${CMAKE_CURRENT_LIST_DIR}/FindJuceTemplates/AppConfig.h.in" ${output_file})
+endfunction()
+
+#------------------------------------------------------------------------------
+
+function(juce_generate_juce_header output_file)
+    if(DEFINED JUCE_PROJECT_NAME)
+        set(JuceProjectName ${JUCE_PROJECT_NAME})
+    else()
+        set(JuceProjectName ${PROJECT_NAME})
+    endif()
+
+    set(JUCE_MODULE_INCLUDES "")
+    foreach(module ${JUCE_MODULES})
+        if(TARGET ${module})
+            string(APPEND JUCE_MODULE_INCLUDES "#include <${module}/${module}.h>\n")
+        endif()
+    endforeach()
+
+    configure_file("${CMAKE_CURRENT_LIST_DIR}/FindJuceTemplates/JuceHeader.h.in" ${output_file})
+endfunction()
 
 #------------------------------------------------------------------------------
 
@@ -297,7 +340,6 @@ macro(juce_add_module module)
 endmacro()
 
 #------------------------------------------------------------------------------
-
 # First find JUCE
 find_path(JUCE_ROOT_DIR 
 	"modules/JUCE Module Format.txt"
@@ -318,9 +360,15 @@ mark_as_advanced(JUCE_INCLUDE_DIR)
 set(JUCE_INCLUDES ${JUCE_INCLUDE_DIR} "${PROJECT_BINARY_DIR}/JuceLibraryCode")
 
 #------------------------------------------------------------------------------
+# Global options
 
+option(JUCE_DISPLAY_SPLASH_SCREEN "" OFF)
+option(JUCE_REPORT_APP_USAGE "" OFF)
+option(JUCE_USE_DARK_SPLASH_SCREEN "" ON)
+
+#------------------------------------------------------------------------------
 # then define common target
-# with only 
+
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG") # TODO find a way to make this per target
 if(NOT TARGET juce_common)
     add_library(juce_common INTERFACE)
@@ -329,70 +377,32 @@ if(NOT TARGET juce_common)
 endif()
 
 #------------------------------------------------------------------------------
-
 # then find components
+
 set(JUCE_MODULES "")
 foreach(module ${JUCE_FIND_COMPONENTS})
 	juce_add_module(${module})
 endforeach()
 
-
-# TODO we could make it unique for each call to find_package if necessary using String(RANDOM) to suffix it
-set(JuceLibraryCode "${PROJECT_BINARY_DIR}/JuceLibraryCode")
-
 #------------------------------------------------------------------------------
-# now generate AppConfig.h
+# now generate specific target for this call to find_package
 
-# generate module defineoptions
-juce_gen_config_flags_str(JUCE_CONFIG_FLAGS_STR)
-set(JUCE_MODULE_AVAILABLE_DEFINE_LIST "")
-
-foreach(module ${JUCE_MODULES})
-	if(TARGET ${module})
-		string(APPEND JUCE_MODULE_AVAILABLE_DEFINE_LIST 
-            "#define JUCE_MODULE_AVAILABLE_${module}\t1\n"
-        )
-	else()
-		string(APPEND JUCE_MODULE_AVAILABLE_DEFINE_LIST 
-            "#define JUCE_MODULE_AVAILABLE_${module}\t0\n"
-        )
-	endif()
-endforeach()
-
-# TODO: try to rely on target_compile_definitions to set those globally instead of populating the AppConfig file
-# and avoid using the cache to allow for multiple calls to find_package(JUCE) with different options.
-# Example:
-#   target_compile_definitions(${PROJECT_NAME} 
-#       PUBLIC 
-#           JUCE_ASIO=1
-#           JUCE_ONLY_BUILD_CORE_LIBRARY=1
-#   ) 
-
-set(JUCE_APPCONFIG_H "${JuceLibraryCode}/AppConfig.h")
-configure_file("${CMAKE_CURRENT_LIST_DIR}/FindJuceTemplates/AppConfig.h.in" ${JUCE_APPCONFIG_H})
+# TODO: we could make it unique for each call to find_package if necessary using String(RANDOM) to suffix it
+set(JuceLibraryCode "${PROJECT_BINARY_DIR}/JuceLibraryCode")
 list(APPEND JUCE_INCLUDES "${JuceLibraryCode}")
-unset(JUCE_MODULE_AVAILABLE_DEFINE_LIST)
-unset(JUCE_CONFIG_FLAGS_STR)
 
+# generate AppConfig.h
+set(JUCE_APPCONFIG_H "${JuceLibraryCode}/AppConfig.h")
+juce_generate_app_config(${JUCE_APPCONFIG_H})
 
-# and generate JuceHeader.h
-set(JUCE_MODULE_INCLUDES_LIST "")
-foreach(module ${JUCE_MODULES})
-    if(TARGET ${module})
-        string(APPEND JUCE_MODULE_INCLUDES_LIST "#include <${module}/${module}.h>\n")
-    endif()
-endforeach()
-
+# generate JuceHeader.h
 set(JUCE_HEADER_H "${JuceLibraryCode}/JuceHeader.h")
-configure_file("${CMAKE_CURRENT_LIST_DIR}/FindJuceTemplates/JuceHeader.h.in" ${JUCE_HEADER_H})
-unset(JUCE_MODULE_INCLUDES_LIST)
+juce_generate_juce_header(${JUCE_HEADER_H})
 
 set(JUCE_SOURCES 
     ${JUCE_APPCONFIG_H} 
     ${JUCE_HEADER_H}
 )
-
-#------------------------------------------------------------------------------
 
 # generate JuceLibraryCode Wrappers
 foreach(module ${JUCE_MODULES})
@@ -402,10 +412,8 @@ foreach(module ${JUCE_MODULES})
         LIST_DIRECTORIES false
         "${JUCE_MODULES_PREFIX}/${module}/${module}*.cpp")
 
-    # TODO postpone that into dedicated target
     foreach(cpp_file ${JUCE_${module}_CPP_FILES})
         get_filename_component(module_source_basename ${cpp_file} NAME_WE)
-        #message("\t${module_source_basename}")
 
         if(APPLE)
             set(_ext "mm")
@@ -430,19 +438,22 @@ endforeach()
 # create unique merge target per binary directory
 string(MD5 juce_target_md5 "${PROJECT_BINARY_DIR}")
 set(JUCE_TARGET juce-${juce_target_md5})
+
 add_library(${JUCE_TARGET} INTERFACE)
 target_include_directories(${JUCE_TARGET} INTERFACE ${JuceLibraryCode})
 target_link_libraries(${JUCE_TARGET} INTERFACE juce_common ${JUCE_MODULES})
 target_sources(${JUCE_TARGET} INTERFACE ${JUCE_SOURCES})
 
+# export this target to be linked by client code
 set(JUCE_LIBRARIES ${JUCE_TARGET})
+
 
 #------------------------------------------------------------------------------
 # organize sources in IDE
 source_group(JuceLibraryCode FILES ${JUCE_SOURCES})
 
-#------------------------------------------------------------------------------
 
+#------------------------------------------------------------------------------
 # finalize
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(JUCE DEFAULT_MSG 

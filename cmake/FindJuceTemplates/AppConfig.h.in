@@ -35,7 +35,7 @@
 #cmakedefine01 JUCE_USE_DARK_SPLASH_SCREEN
 
 //==============================================================================
-${JUCE_MODULE_AVAILABLE_DEFINE_LIST}
+${JUCE_MODULES_AVAILABLE}
 
 //==============================================================================
 #ifndef    JUCE_STANDALONE_APPLICATION
@@ -48,6 +48,6 @@ ${JUCE_MODULE_AVAILABLE_DEFINE_LIST}
 
 #define JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED 1
 
-${JUCE_CONFIG_FLAGS_STR}
+${JUCE_CONFIG_FLAGS}
 
 
