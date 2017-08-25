@@ -25,10 +25,10 @@
 #   JUCE_<C>_SOURCES        - Module sources for component <C>  
 #   JUCE_<C>_LIBRARY        - Libraries to link for component <C>
 #   JUCE_CONFIG_<C>         - Juce Config for variable <C>
-#?   JUCE_VERSION            - JUCE_VERSION value from boost/version.hpp
-#?   JUCE_MAJOR_VERSION      - JUCE major version number (X in X.y.z)
-#?   JUCE_MINOR_VERSION      - JUCE minor version number (Y in x.Y.z)
-#?   JUCE_SUBMINOR_VERSION   - JUCE subminor version number (Z in x.y.Z)
+#?   JUCE_VERSION           - JUCE_VERSION value from boost/version.hpp
+#?   JUCE_VERSION_MAJOR     - JUCE major version number (X in X.y.z)
+#?   JUCE_VERSION_MINOR     - JUCE minor version number (Y in x.Y.z)
+#?   JUCE_VERSION_SUBMINOR  - JUCE subminor version number (Z in x.y.Z)
 # 
 #   Multiple Calls to find_package
 #   ------------------------------
@@ -358,6 +358,20 @@ set(JUCE_INCLUDE_DIR ${JUCE_MODULES_PREFIX} CACHE PATH "Juce modules include dir
 mark_as_advanced(JUCE_INCLUDE_DIR)
 
 set(JUCE_INCLUDES ${JUCE_INCLUDE_DIR} "${PROJECT_BINARY_DIR}/JuceLibraryCode")
+
+#------------------------------------------------------------------------------
+# get VERSION
+set(_version_pattern "[ \t]*version:[ \t]*(([0-9]+).([0-9]+).([0-9]+))")
+file(STRINGS "${JUCE_MODULES_PREFIX}/juce_core/juce_core.h" JUCE_VERSIONS REGEX ${_version_pattern})
+string(REGEX REPLACE "${_version_pattern}" "\\1" JUCE_VERSION ${JUCE_VERSIONS})
+string(REGEX REPLACE "${_version_pattern}" "\\2" JUCE_VERSION_MAJOR ${JUCE_VERSIONS})
+string(REGEX REPLACE "${_version_pattern}" "\\3" JUCE_VERSION_MINOR ${JUCE_VERSIONS})
+string(REGEX REPLACE "${_version_pattern}" "\\4" JUCE_VERSION_SUBMINOR ${JUCE_VERSIONS})
+
+foreach(_var JUCE_VERSION JUCE_VERSION_MAJOR JUCE_VERSION_MINOR JUCE_VERSION_SUBMINOR)
+    set(${_var} ${${_var}} CACHE STRING "")
+    mark_as_advanced(${_var})
+endforeach()
 
 #------------------------------------------------------------------------------
 # Global options
