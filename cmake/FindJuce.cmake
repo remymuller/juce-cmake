@@ -21,12 +21,12 @@
 #	JUCE_SOURCES			- JUCE library sources
 #   JUCE_<C>_FOUND          - True if component <C> was found 
 #   JUCE_<C>_HEADER         - Module header for component <C> 
-#   JUCE_<C>_SOURCES        - Module sources for component <C> 
+#   JUCE_<C>_SOURCES        - Module sources for component <C>  
 #   JUCE_<C>_LIBRARY        - Libraries to link for component <C>
-#   JUCE_VERSION            - JUCE_VERSION value from boost/version.hpp
-#   JUCE_MAJOR_VERSION      - JUCE major version number (X in X.y.z)
-#   JUCE_MINOR_VERSION      - JUCE minor version number (Y in x.Y.z)
-#   JUCE_SUBMINOR_VERSION   - JUCE subminor version number (Z in x.y.Z)
+#?   JUCE_VERSION            - JUCE_VERSION value from boost/version.hpp
+#?   JUCE_MAJOR_VERSION      - JUCE major version number (X in X.y.z)
+#?   JUCE_MINOR_VERSION      - JUCE minor version number (Y in x.Y.z)
+#?   JUCE_SUBMINOR_VERSION   - JUCE subminor version number (Z in x.y.Z)
 #   JUCE_CONFIG_<C>         - Juce Config for variable <C>
 
 
@@ -119,12 +119,14 @@ macro(juce_module_set_platformlibs module)
 
 	foreach(_lib ${_libs})
 		find_library(JUCE_LIB_${_lib} ${_lib})
+        mark_as_advanced(JUCE_LIB_${_lib})
 		list(APPEND JUCE_${module}_platformlibs ${JUCE_LIB_${_lib}})
 	endforeach()
 
+    # set(JUCE_${module}_platformlibs ${JUCE_${module}_platformlibs} CACHE STRING "")
+
 	unset(_lib)
 	unset(_libs)
-
 endmacro()
 
 
@@ -152,10 +154,13 @@ function(juce_module_get_config_flags module)
         list(APPEND flags ${flag})
     endforeach()
 
-    set(JUCE_${module}_CONFIG_FLAGS ${flags} PARENT_SCOPE)
+    set(JUCE_${module}_CONFIG_FLAGS ${flags} CACHE STRING "Config flags for JUCE module ${module}")
+    mark_as_advanced(JUCE_${module}_CONFIG_FLAGS)
 
     foreach(flag ${flags})
-        set(JUCE_CONFIG_${flag} default CACHE STRING "")
+        set(JUCE_CONFIG_${flag} default CACHE STRING "") # TODO extract doc from header
+        mark_as_advanced(JUCE_CONFIG_${flag})
+
         set_property(
             CACHE JUCE_CONFIG_${flag} 
             PROPERTY STRINGS "default;ON;OFF"
@@ -174,7 +179,8 @@ macro(juce_add_module module)
 		# debug
 		# message("juce_add_module: YES\t${module}")
 
-		set(JUCE_${module}_HEADER "${JUCE_MODULES_PREFIX}/${module}/${module}.h")
+		set(JUCE_${module}_HEADER "${JUCE_MODULES_PREFIX}/${module}/${module}.h" CACHE PATH "Header for JUCE module ${module}")
+        mark_as_advanced(JUCE_${module}_HEADER)
 
 		juce_module_get_info(${module})
 		juce_module_set_platformlibs(${module})
@@ -197,6 +203,7 @@ macro(juce_add_module module)
 			LIST_DIRECTORIES false
 			"${JUCE_MODULES_PREFIX}/${module}/${module}*.cpp")
 
+        # TODO postpone that into dedicated target
 		foreach(cpp_file ${JUCE_${module}_CPP_FILES})
 			get_filename_component(module_source_basename ${cpp_file} NAME_WE)
 			#message("\t${module_source_basename}")
@@ -229,11 +236,14 @@ macro(juce_add_module module)
 	    target_link_libraries(${module} INTERFACE "${JUCE_${module}_platformlibs}")
 
         # but this lines conflicts with IMPORTED https://cmake.org/cmake/help/v3.1/command/target_sources.html
+        # TODO: post pone this one for later
         target_sources(${module} INTERFACE ${JUCE_${module}_SOURCES}) 
 
 
     	# set global variables
-		set(JUCE_${module}_FOUND true)
+		set(JUCE_${module}_FOUND true CACHE BOOL "")
+        mark_as_advanced(JUCE_${module}_FOUND)
+
 		list(APPEND JUCE_LIBRARIES ${module})
 		list(APPEND JUCE_SOURCES ${JUCE_${module}_SOURCES})
 
@@ -247,7 +257,7 @@ endmacro()
 #------------------------------------------------------------------------------
 
 # First find JUCE
-find_path(JUCE_PATH 
+find_path(JUCE_ROOT_DIR 
 	"modules/JUCE Module Format.txt"
 	HINTS
 		${PROJECT_SOURCE_DIR}/../
@@ -257,8 +267,12 @@ find_path(JUCE_PATH
 	DOC 
 		"JUCE library directory"
 )
-set(JUCE_MODULES_PREFIX "${JUCE_PATH}/modules")
-set(JUCE_INCLUDE_DIR ${JUCE_MODULES_PREFIX})
+set(JUCE_MODULES_PREFIX "${JUCE_ROOT_DIR}/modules")
+mark_as_advanced(JUCE_ROOT_DIR)
+
+set(JUCE_INCLUDE_DIR ${JUCE_MODULES_PREFIX} CACHE PATH "Juce modules include directory")
+mark_as_advanced(JUCE_INCLUDE_DIR)
+
 set(JUCE_INCLUDES ${JUCE_INCLUDE_DIR} "${PROJECT_BINARY_DIR}/JuceLibraryCode")
 
 #------------------------------------------------------------------------------
@@ -394,6 +408,7 @@ source_group(JuceLibraryCode FILES ${JUCE_SOURCES})
 # finalize
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(JUCE DEFAULT_MSG 
+    JUCE_ROOT_DIR
 	JUCE_INCLUDE_DIR 
 	JUCE_LIBRARIES 
 	JUCE_SOURCES
