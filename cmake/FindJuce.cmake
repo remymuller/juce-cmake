@@ -244,7 +244,6 @@ endfunction()
 #------------------------------------------------------------------------------
 
 macro(juce_add_module module)
-	#if(TARGET ${module})
     if(${JUCE_${module}_FOUND})
 		# debug
 		#message("juce_add_module: NO \t${module}")
@@ -270,15 +269,17 @@ macro(juce_add_module module)
 		# 	message("JUCE_${module}_${property}:\t${JUCE_${module}_${property}}")
 		# endforeach()
 
-		# generate INTERFACE library for module
-        # TODO: use IMPORTED target https://cmake.org/cmake/help/v3.9/manual/cmake-buildsystem.7.html#imported-targets
+		# generate immutable INTERFACE IMPORTED library for module
         if(NOT TARGET ${module})
     		add_library(${module} INTERFACE IMPORTED)
-    		target_include_directories(${module} INTERFACE ${JUCE_${module}_searchpaths})
-        	target_link_libraries(${module} INTERFACE juce_common)
-    	    target_link_libraries(${module} INTERFACE "${JUCE_${module}_dependencies}")
-    	    #message("${JUCE_${module}_platformlibs}")
-    	    target_link_libraries(${module} INTERFACE "${JUCE_${module}_platformlibs}")
+            set_property(TARGET ${module} PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${JUCE_${module}_searchpaths})
+            set_property(TARGET ${module} PROPERTY INTERFACE_LINK_LIBRARIES 
+                    juce_common
+                    "${JUCE_${module}_dependencies}"
+                    "${JUCE_${module}_platformlibs}"
+            )
+            # set_property(TARGET ${module} PROPERTY INTERFACE_COMPILE_OPTIONS)
+            # set_property(TARGET ${module} PROPERTY INTERFACE_COMPILE_DEFINITIONS)
         else()
             #message("target: ${module} already defined")
         endif()
