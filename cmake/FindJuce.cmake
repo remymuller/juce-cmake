@@ -383,11 +383,11 @@ option(JUCE_USE_DARK_SPLASH_SCREEN "" ON)
 #------------------------------------------------------------------------------
 # then define common target
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG") # TODO find a way to make this per target
 if(NOT TARGET juce_common)
     add_library(juce_common INTERFACE)
     target_include_directories(juce_common INTERFACE ${JUCE_INCLUDE_DIR})
     target_compile_features(juce_common INTERFACE cxx_auto_type cxx_constexpr) # TODO make this per module
+    target_compile_options(juce_common INTERFACE $<$<CONFIG:Debug>:-DDEBUG>) # avoid warning in juce code
 endif()
 
 #------------------------------------------------------------------------------
