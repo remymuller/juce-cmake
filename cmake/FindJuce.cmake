@@ -42,6 +42,7 @@
 #   cache variables JUCE_CONFIG_<flag>, but they can be overriden locally by 
 #   using target_compile_definitions(target "JUCE_<flag>=1")
 
+cmake_policy(SET CMP0057 NEW) # support for IN_LIST operator
 
 #------------------------------------------------------------------------------
 # helpers
@@ -113,6 +114,7 @@ function(juce_module_get_info module)
 	endforeach()
 
     set(JUCE_${module}_minimumCppStandard ${JUCE_${module}_minimumCppStandard} CACHE STRING "")
+    mark_as_advanced(JUCE_${module}_minimumCppStandard)
 endfunction()
 
 #------------------------------------------------------------------------------
@@ -427,18 +429,40 @@ set(JUCE_SOURCES
 foreach(module ${JUCE_MODULES})
     # generate sources wrappers
     set(JUCE_${module}_SOURCES "")
-    file(GLOB JUCE_${module}_CPP_FILES 
+
+    # get all module files
+    file(GLOB _module_FILES 
         LIST_DIRECTORIES false
-        "${JUCE_MODULES_PREFIX}/${module}/${module}*.cpp")
+        "${JUCE_MODULES_PREFIX}/${module}/${module}*.*")
 
-    foreach(cpp_file ${JUCE_${module}_CPP_FILES})
-        get_filename_component(module_source_basename ${cpp_file} NAME_WE)
+    # look for unique basename 
+    set(module_files_basenames "")
+    foreach(_file ${_module_FILES})
+        get_filename_component(module_source_basename ${_file} NAME_WE)
+        list(APPEND module_files_basenames ${module_source_basename})
+    endforeach()
+    list(REMOVE_DUPLICATES module_files_basenames)
 
-        if(APPLE)
-            set(_ext "mm")
-        else()
-            set(_ext "cpp")
+
+    #foreach(cpp_file ${JUCE_${module}_CPP_FILES})
+        #get_filename_component(module_source_basename ${cpp_file} NAME_WE)
+    foreach(module_source_basename ${module_files_basenames})
+
+        if(APPLE)            
+            if("${JUCE_MODULES_PREFIX}/${module}/${module_source_basename}.mm" IN_LIST _module_FILES)
+                set(_ext "mm")
+            endif()
         endif()
+
+        if(NOT DEFINED _ext)
+            if("${JUCE_MODULES_PREFIX}/${module}/${module_source_basename}.cpp" IN_LIST _module_FILES)
+                set(_ext "cpp")
+            else()
+                continue()
+            endif()
+        endif()
+
+        #message(STATUS "JUCE: Using ${module_source_basename}.${_ext}")
 
         set(JUCE_${module}_current_source "${JuceLibraryCode}/include_${module_source_basename}.${_ext}")
         set(JUCE_CURRENT_MODULE ${module})
