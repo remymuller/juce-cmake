@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist>
+  <dict>
+    <key>CFBundleExecutable</key>
+    <string>${EXECUTABLE_NAME}</string>
+    <key>CFBundleIconFile</key>
+    <string>@BUNDLE_ICON_FILE@</string>
+    <key>CFBundleIdentifier</key>
+    <string>@BUNDLE_IDENTIFIER@</string>
+    <key>CFBundleName</key>
+    <string>@PRODUCT_NAME@</string>
+    <key>CFBundleDisplayName</key>
+    <string>@PRODUCT_NAME@</string>
+    <key>CFBundlePackageType</key>
+    <string>BNDL</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleShortVersionString</key>
+    <string>@VERSION@</string>
+    <key>CFBundleVersion</key>
+    <string>@VERSION@</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>@COMPANY_NAME@</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>AudioComponents</key>
+    <array>
+      <dict>
+        <key>name</key>
+        <string>@COMPANY_NAME@: @PLUGIN_NAME@</string>
+        <key>description</key>
+        <string>@PLUGIN_DESC@</string>
+        <key>factoryFunction</key>
+        <string>@PLUGIN_AU_EXPORT_PREFIX@Factory</string>
+        <key>manufacturer</key>
+        <string>@COMPANY_NAME@</string>
+        <key>type</key>
+        <string>@AU_TYPE_CODE@</string>
+        <key>subtype</key>
+        <string>@PLUGIN_CODE@</string>  
+        <key>version</key>
+        <integer>@VERSION_HEX@</integer>
+      </dict>
+    </array>
+  </dict>
+</plist>

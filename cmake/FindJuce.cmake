@@ -534,15 +534,134 @@ find_package_handle_standard_args(JUCE DEFAULT_MSG
 # first remember where we are
 set(JUCE_CMAKE_MODULE_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE INTERNAL "")
 
-function(juce_add_vst target sources)
-    set(OSX_EXTENSION "vst")
-    set(OSX_INSTALL_PATH "$(HOME)/Library/Audio/Plug-Ins/VST/")
-    set(VST_PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-VST.plist.in")
-    set(VST_PLIST "${CMAKE_BINARY_DIR}/JuceLibraryCode/${target}_Info.plist")
+macro(juce_get_PluginVSTCategoryString var)
+    if(PLUGIN_IS_SYNTH)
+        set(${var} kPlugCategSynth)
+    else()
+        set(${var} kPlugCategEffect)
+    endif()
+endmacro()
 
-    configure_file("${VST_PLIST_IN}" "${VST_PLIST}" @ONLY)
+macro(juce_get_AUMainTypeEnum var)
+    if(PLUGIN_IS_MIDI_EFFECT)
+        # Unfortunately, Rez uses a header where kAudioUnitType_MIDIProcessor is undefined
+        # Use aumi instead.
+        # set(${var} 'aumi')
+        set(${var} kAudioUnitType_MIDIProcessor)
+    elseif(PLUGIN_IS_SYNTH)
+        set(${var} kAudioUnitType_MusicDevice)
+    elseif(PLUGIN_WANTS_MIDI_IN)
+        set(${var} kAudioUnitType_MusicEffect)
+    else()
+        set(${var} kAudioUnitType_Effect)
+    endif()
+endmacro()
 
-    add_library(${target} MODULE ${sources})
+macro(juce_get_AUMainTypeCode var)
+    if(PLUGIN_IS_MIDI_EFFECT)
+        set(${var} aumi)
+    elseif(PLUGIN_IS_SYNTH)
+        set(${var} aumu)
+    elseif(PLUGIN_WANTS_MIDI_IN)
+        set(${var} aumf)
+    else()
+        set(${var} aufx)
+    endif()
+endmacro()
+
+macro(juce_get_IAATypeCode var)
+    if(PLUGIN_WANTS_MIDI_IN)
+        if(PLUGIN_IS_SYNTH)
+            set(${var} auri)
+        else()
+            set(${var} aurm)
+        endif()
+    else()
+        if(PLUGIN_IS_SYNTH)
+            set(${var} aurg)
+        else()
+            set(${var} aurx)
+        endif()
+    endif()
+endmacro()
+
+
+function(juce_dec_to_hex dec_value out_hex_value)
+  if(dec_value EQUAL 0)
+    set(${out_hex_value} "0x0" PARENT_SCOPE)
+    return()
+  endif()
+
+  if(dec_value LESS 0)
+    math(EXPR dec_value "2147483647 ${dec_value} + 1")
+  endif()
+
+  while(dec_value GREATER 0)
+    math(EXPR hex_unit "${dec_value} & 15")
+    if(hex_unit LESS 10)
+      set(hex_char ${hex_unit})
+    else()
+      math(EXPR hex_unit "${hex_unit} + 87")
+      string(ASCII ${hex_unit} hex_char)
+    endif()
+    set(hex_value "${hex_char}${hex_value}")
+    math(EXPR dec_value "${dec_value} >> 4")
+  endwhile()
+
+  set(${out_hex_value} "0x${hex_value}" PARENT_SCOPE)
+endfunction()
+
+
+function(juce_four_chars_to_hex value out_hex_value)
+  foreach(ascii_code RANGE 1 127)
+    list(APPEND all_ascii_codes ${ascii_code})
+  endforeach()
+  string(ASCII ${all_ascii_codes} all_ascii_chars)
+
+  string(STRIP "${value}" four_chars)
+  string(SUBSTRING "${four_chars}" 0 4 four_chars)
+  set(dec_value 0)
+  foreach(index 0 1 2 3)
+    string(SUBSTRING "${four_chars}" ${index} 1 ascii_char)
+    string(FIND "${all_ascii_chars}" "${ascii_char}" ascii_code)
+    if(ascii_code EQUAL -1)
+      message(FATAL_ERROR "${value} cannot contain non-ASCII characters")
+    endif()
+    math(EXPR dec_value "(${dec_value} << 8) | ((${ascii_code} + 1) & 255)")
+  endforeach()
+
+  juce_dec_to_hex("${dec_value}" hex_value)
+  set(${out_hex_value} "${hex_value}" PARENT_SCOPE)
+endfunction()
+
+function(juce_version_to_dec version out_dec_value)
+  string(REPLACE "." ";" segments "${version}")
+  list(LENGTH segments segments_size)
+  while(segments_size LESS 3)
+    list(APPEND segments 0)
+    math(EXPR segments_size "${segments_size} + 1")
+  endwhile()
+  list(GET segments 0 major)
+  list(GET segments 1 minor)
+  list(GET segments 2 patch)
+  math(EXPR dec_value "(${major} << 16) + (${minor} << 8) + ${patch}")
+  if(segments_size GREATER 3)
+    list(GET segments 3 revision)
+    math(EXPR dec_value "${dec_value} << 8 + ${revision}")
+  endif()
+
+  set(${out_dec_value} "${dec_value}" PARENT_SCOPE)
+endfunction()
+
+
+function(juce_version_to_hex version out_hex_value)
+  juce_version_to_dec("${version}" dec_value)
+  juce_dec_to_hex("${dec_value}" hex_value)
+  set(${out_hex_value} "${hex_value}" PARENT_SCOPE)
+endfunction()
+
+
+function(juce_set_bundle_properties target)
     set_target_properties(${target} 
         PROPERTIES 
             OUTPUT_NAME ${PRODUCT_NAME}
@@ -560,44 +679,49 @@ function(juce_add_vst target sources)
             BUNDLE_EXTENSION "${OSX_EXTENSION}"
             XCODE_ATTRIBUTE_WRAPPER_EXTENSION "${OSX_EXTENSION}"
             XCODE_ATTRIBUTE_INSTALL_PATH "${OSX_INSTALL_PATH}"
-            XCODE_ATTRIBUTE_INFOPLIST_FILE ${VST_PLIST}
-            MACOSX_BUNDLE_INFO_PLIST ${VST_PLIST}
+            XCODE_ATTRIBUTE_INFOPLIST_FILE ${PLIST}
+            MACOSX_BUNDLE_INFO_PLIST ${PLIST}
             XCODE_ATTRIBUTE_INFOPLIST_PREPROCESS "YES"
             XCODE_ATTRIBUTE_CURRENT_PROJECT_VERSION ${VERSION}
     )
 endfunction()
 
-function(juce_add_au target sources)
-    set(OSX_EXTENSION "component")
-    set(OSX_INSTALL_PATH "$(HOME)/Library/Audio/Plug-Ins/Components/")
-    set(AU_PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-AU.plist.in")
-    set(AU_PLIST "${CMAKE_BINARY_DIR}/JuceLibraryCode/${target}_Info.plist")
 
-    configure_file("${AU_PLIST_IN}" "${AU_PLIST}" @ONLY)
+function(juce_add_vst target sources)
+    set(OSX_EXTENSION "vst")
+    set(OSX_INSTALL_PATH "$(HOME)/Library/Audio/Plug-Ins/VST/")
+    set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-VST.plist.in")
+    set(PLIST "${CMAKE_BINARY_DIR}/JuceLibraryCode/${target}_Info.plist")
+
+    configure_file("${PLIST_IN}" "${PLIST}" @ONLY)
 
     add_library(${target} MODULE ${sources})
-    set_target_properties(${target} 
-        PROPERTIES 
-            OUTPUT_NAME ${PRODUCT_NAME}
-            BUNDLE true
-#            MACOSX_BUNDLE true
-            XCODE_ATTRIBUTE_MACH_O_TYPE mh_bundle
-            XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas"
-            XCODE_ATTRIBUTE_GENERATE_PKGINFO_FILE "YES"
-            XCODE_ATTRIBUTE_DEPLOYMENT_LOCATION YES
-            XCODE_ATTRIBUTE_DSTROOT "/"
-            XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER ${BUNDLE_IDENTIFIER}
-            MACOSX_BUNDLE_GUI_IDENTIFIER ${BUNDLE_IDENTIFIER}
-            MACOSX_BUNDLE_BUNDLE_VERSION ${VERSION}
-            BUNDLE_EXTENSION "${OSX_EXTENSION}"
-            XCODE_ATTRIBUTE_WRAPPER_EXTENSION "${OSX_EXTENSION}"
-            XCODE_ATTRIBUTE_INSTALL_PATH "${OSX_INSTALL_PATH}"
-            XCODE_ATTRIBUTE_INFOPLIST_FILE ${AU_PLIST}
-            MACOSX_BUNDLE_INFO_PLIST ${AU_PLIST}
-            XCODE_ATTRIBUTE_INFOPLIST_PREPROCESS "YES"
-            XCODE_ATTRIBUTE_CURRENT_PROJECT_VERSION ${VERSION}
-    )
+    juce_set_bundle_properties(${target})
 endfunction()
+
+
+function(juce_add_au target sources)
+    if(APPLE)            
+        set(OSX_EXTENSION "component")
+        set(OSX_INSTALL_PATH "$(HOME)/Library/Audio/Plug-Ins/Components/")
+        set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-AU.plist.in")
+        set(PLIST "${CMAKE_BINARY_DIR}/JuceLibraryCode/${target}_Info.plist")
+        juce_get_AUMainTypeEnum(AU_TYPE)
+        juce_get_AUMainTypeCode(AU_TYPE_CODE)
+
+        configure_file("${PLIST_IN}" "${PLIST}" @ONLY)
+
+        add_library(${target} MODULE ${sources})
+        juce_set_bundle_properties(${target})
+
+        add_custom_command(
+            TARGET ${target} 
+            POST_BUILD 
+            COMMAND auval -v ${AU_TYPE_CODE} ${PLUGIN_CODE} ${PLUGIN_MANUFACTURER_CODE}
+        )
+    endif()
+endfunction()
+
 
 function(juce_generate_plugin_definitions var)
     set(${var}
@@ -622,13 +746,13 @@ function(juce_generate_plugin_definitions var)
          JucePlugin_IsMidiEffect=${PLUGIN_IS_MIDI_EFFECT}
          JucePlugin_EditorRequiresKeyboardFocus=${PLUGIN_EDITOR_REQUIRES_KEYS}
          JucePlugin_Version=${VERSION}
-         JucePlugin_VersionCode=${VERSION_CODE}
+         JucePlugin_VersionCode=${VERSION_HEX}
          JucePlugin_VersionString="${VERSION}"
          JucePlugin_CFBundleIdentifier=${BUNDLE_IDENTIFIER}
     )
 
     if(${BUILD_VST})           
-        set(VST_TYPE kPlugCategEffect) # TODO: set this according to options
+        juce_get_PluginVSTCategoryString(VST_TYPE)
         list(APPEND ${var}
             JucePlugin_VSTUniqueID=JucePlugin_PluginCode
             JucePlugin_VSTCategory=${VST_TYPE} 
@@ -636,7 +760,8 @@ function(juce_generate_plugin_definitions var)
     endif()
 
     if(${BUILD_AU})
-        set(AU_TYPE kAudioUnitType_MusicEffect) # TODO: set this according to options
+        juce_get_AUMainTypeEnum(AU_TYPE)
+        juce_get_AUMainTypeCode(AU_TYPE_CODE)
         list(APPEND ${var}
              JucePlugin_AUMainType=${AU_TYPE}
              JucePlugin_AUSubType=JucePlugin_PluginCode
@@ -668,19 +793,24 @@ function(juce_generate_plugin_definitions var)
     endif()
 
     if(${ENABLE_IAA})
+        juce_get_IAATypeCode(IAA_TYPE_CODE)
+        juce_four_chars_to_hex(${IAA_TYPE_CODE} IAA_TYPE_HEX)
+        #message("IAA_TYPE_CODE: ${IAA_TYPE_CODE} = ${IAA_TYPE_HEX}")
+
         list(APPEND ${var}
-             JucePlugin_IAAType=0x6175726d # 'aurm'
+             JucePlugin_IAAType=IAA_TYPE_HEX #0x6175726d # 'aurm'
              JucePlugin_IAASubType=JucePlugin_PluginCode
              JucePlugin_IAAName="${COMPANY_NAME}: ${PLUGIN_NAME}"
         )
     endif()
 
-    foreach(definition ${${var}})
-        message("${definition}")
-    endforeach()
+    # foreach(definition ${${var}})
+    #     message("${definition}")
+    # endforeach()
 
     set(${var} ${${var}} PARENT_SCOPE)
 endfunction()
+
 
 function(juce_add_audio_plugin)
 
@@ -802,13 +932,9 @@ function(juce_add_audio_plugin)
         endif()
     endforeach()
 
-    # TODO: set VERSION_CODE
-    set(VERSION_CODE 0x10000)
-    #set(AU_CODE)
-    #set(AU_TYPE_FOUR_CHAR)
-
-    set(PLUGIN_CODE_INT)
-    set(PLUGIN_MANUFACTURER_CODE_INT)
+    juce_version_to_hex(${VERSION} VERSION_HEX)
+    juce_four_chars_to_hex(${PLUGIN_CODE} PLUGIN_CODE_INT)
+    juce_four_chars_to_hex(${PLUGIN_MANUFACTURER_CODE} PLUGIN_MANUFACTURER_CODE_INT)
 
     # generate the list of preprocessor defines
     juce_generate_plugin_definitions(plugin_definitions)
