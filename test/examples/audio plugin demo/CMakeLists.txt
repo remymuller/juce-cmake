@@ -53,7 +53,7 @@ juce_add_audio_plugin(
     AAX_IDENTIFIER              com.yourcompany.JuceDemoPlugin
     AAX_CATEGORY                AAX_ePlugInCategory_Dynamics
     BUNDLE_IDENTIFIER           com.juce.JuceDemoPlugin
-    FORMATS                     VST AU # VST3 AAX Standalone AUv3
+    FORMATS                     VST AU Standalone # VST3 AAX AUv3
     DEFINITIONS                 ${common_definitions}
     SOURCES                     ${SOURCES}
     LIBRARIES                   ${JUCE_LIBRARIES}
