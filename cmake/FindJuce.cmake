@@ -755,6 +755,12 @@ function(juce_add_standalone target sources)
     add_executable(${target} ${sources})
     juce_set_app_bundle_properties(${target})
 
+    if(MSVC)
+        set_target_properties(${target} 
+            PROPERTIES 
+            WIN32_EXECUTABLE true
+        )
+    endif()
 endfunction()
 
 
