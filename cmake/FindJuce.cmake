@@ -724,25 +724,23 @@ endfunction()
 
 
 function(juce_add_au target sources)
-    if(APPLE)            
-        set(OSX_EXTENSION "component")
-        set(OSX_INSTALL_PATH "$(HOME)/Library/Audio/Plug-Ins/Components/")
-        set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-AU.plist.in")
-        set(PLIST "${CMAKE_BINARY_DIR}/JuceLibraryCode/${target}_Info.plist")
-        juce_get_AUMainTypeEnum(AU_TYPE)
-        juce_get_AUMainTypeCode(AU_TYPE_CODE)
+    set(OSX_EXTENSION "component")
+    set(OSX_INSTALL_PATH "$(HOME)/Library/Audio/Plug-Ins/Components/")
+    set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-AU.plist.in")
+    set(PLIST "${CMAKE_BINARY_DIR}/JuceLibraryCode/${target}_Info.plist")
+    juce_get_AUMainTypeEnum(AU_TYPE)
+    juce_get_AUMainTypeCode(AU_TYPE_CODE)
 
-        configure_file("${PLIST_IN}" "${PLIST}" @ONLY)
+    configure_file("${PLIST_IN}" "${PLIST}" @ONLY)
 
-        add_library(${target} MODULE ${sources})
-        juce_set_bundle_properties(${target})
+    add_library(${target} MODULE ${sources})
+    juce_set_bundle_properties(${target})
 
-        add_custom_command(
-            TARGET ${target} 
-            POST_BUILD 
-            COMMAND auval -v ${AU_TYPE_CODE} ${PLUGIN_CODE} ${PLUGIN_MANUFACTURER_CODE}
-        )
-    endif()
+    add_custom_command(
+        TARGET ${target} 
+        POST_BUILD 
+        COMMAND auval -v ${AU_TYPE_CODE} ${PLUGIN_CODE} ${PLUGIN_MANUFACTURER_CODE}
+    )
 endfunction()
 
 function(juce_add_standalone target sources)
@@ -989,7 +987,11 @@ function(juce_add_audio_plugin)
         if(${format} MATCHES VST)
             juce_add_vst(${target_name} "${SOURCES}")
         elseif(${format} MATCHES AU)
-            juce_add_au(${target_name} "${SOURCES}")
+            if(APPLE)            
+                juce_add_au(${target_name} "${SOURCES}")
+            else()
+                continue()
+            endif()
         elseif(${format} MATCHES Standalone)
             juce_add_standalone(${target_name} "${SOURCES}")
         else()
