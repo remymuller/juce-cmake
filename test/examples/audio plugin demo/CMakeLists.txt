@@ -45,7 +45,8 @@ juce_add_audio_plugin(
     PLUGIN_WANTS_MIDI_IN        1
     PLUGIN_PRODUCES_MIDI_OUT    1
     PLUGIN_EDITOR_REQUIRES_KEYS 1
-    PLUGIN_AU_EXPORT_PREFIX     ${PROJECT_NAME}AU
+    ENABLE_IAA                  1
+    PLUGIN_AU_EXPORT_PREFIX     JuceDemoProjectAU
     PLUGIN_AU_VIEW_CLASS        JuceDemoProjectAU_V1
     COMPANY_NAME                "ROLI Ltd."
     COMPANY_WEBSITE             www.juce.com
