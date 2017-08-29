@@ -668,7 +668,6 @@ function(juce_set_bundle_properties target)
                 OUTPUT_NAME ${PRODUCT_NAME}
                 XCODE_ATTRIBUTE_PRODUCT_NAME ${PRODUCT_NAME}
                 BUNDLE true
-    #            MACOSX_BUNDLE true
                 XCODE_ATTRIBUTE_MACH_O_TYPE mh_bundle
                 XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas"
                 XCODE_ATTRIBUTE_GENERATE_PKGINFO_FILE "YES"
@@ -682,7 +681,6 @@ function(juce_set_bundle_properties target)
                 XCODE_ATTRIBUTE_INSTALL_PATH "${OSX_INSTALL_PATH}"
                 XCODE_ATTRIBUTE_INFOPLIST_FILE ${PLIST}
                 MACOSX_BUNDLE_INFO_PLIST ${PLIST}
-#                XCODE_ATTRIBUTE_INFOPLIST_PREPROCESS "YES"
                 XCODE_ATTRIBUTE_CURRENT_PROJECT_VERSION ${VERSION}
         )
     endif()
@@ -694,9 +692,7 @@ function(juce_set_app_bundle_properties target)
             PROPERTIES 
                 OUTPUT_NAME ${PRODUCT_NAME}
                 XCODE_ATTRIBUTE_PRODUCT_NAME ${PRODUCT_NAME}
-                #BUNDLE true
                 MACOSX_BUNDLE true
-#                XCODE_ATTRIBUTE_MACH_O_TYPE mh_bundle
                 XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas"
                 XCODE_ATTRIBUTE_GENERATE_PKGINFO_FILE "YES"
                 XCODE_ATTRIBUTE_DEPLOYMENT_LOCATION YES
@@ -704,12 +700,9 @@ function(juce_set_app_bundle_properties target)
                 XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER ${BUNDLE_IDENTIFIER}
                 MACOSX_BUNDLE_GUI_IDENTIFIER ${BUNDLE_IDENTIFIER}
                 MACOSX_BUNDLE_BUNDLE_VERSION ${VERSION}
- #               BUNDLE_EXTENSION "${OSX_EXTENSION}"
- #               XCODE_ATTRIBUTE_WRAPPER_EXTENSION "${OSX_EXTENSION}"
                 XCODE_ATTRIBUTE_INSTALL_PATH "${OSX_INSTALL_PATH}"
                 XCODE_ATTRIBUTE_INFOPLIST_FILE ${PLIST}
                 MACOSX_BUNDLE_INFO_PLIST ${PLIST}
-#                XCODE_ATTRIBUTE_INFOPLIST_PREPROCESS "YES"
                 XCODE_ATTRIBUTE_CURRENT_PROJECT_VERSION ${VERSION}
         )
     endif()
@@ -985,7 +978,9 @@ function(juce_add_audio_plugin)
     # generate the list of preprocessor defines
     juce_generate_plugin_definitions(plugin_definitions)
 
-    # create common target ?
+    # TOOD: create SharedCode target
+    # for that we need that plugin specific code is not compiled in juce_audio_plugin_client
+    # 
 
     # create one target per format
     foreach(format ${FORMATS})
