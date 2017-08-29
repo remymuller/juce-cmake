@@ -813,6 +813,7 @@ endfunction()
 
 
 function(juce_add_audio_plugin)
+    # TODO: support RESOURCES
 
     set(required_properties
         PRODUCT_NAME 
@@ -872,7 +873,7 @@ function(juce_add_audio_plugin)
         AAX_CATEGORY
         ENABLE_IAA
     )
-    set(multiValueArgs FORMATS DEFINITIONS SOURCES LIBRARIES)
+    set(multiValueArgs FORMATS DEFINITIONS SOURCES LIBRARIES INCLUDES)
     set(allArgs ${options} ${oneValueArgs} ${multiValueArgs})
     cmake_parse_arguments(juce_add_audio_plugin 
         "${options}" 
@@ -955,6 +956,7 @@ function(juce_add_audio_plugin)
         endif()
     
         target_compile_definitions(${target_name} PUBLIC ${plugin_definitions} ${DEFINITIONS})
+        target_include_directories(${target_name} PUBLIC ${INCLUDES})
         target_link_libraries(${target_name} PUBLIC ${LIBRARIES})
     endforeach()
 endfunction()
