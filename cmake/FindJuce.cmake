@@ -662,30 +662,58 @@ endfunction()
 
 
 function(juce_set_bundle_properties target)
-    set_target_properties(${target} 
-        PROPERTIES 
-            OUTPUT_NAME ${PRODUCT_NAME}
-            XCODE_ATTRIBUTE_PRODUCT_NAME ${PRODUCT_NAME}
-            BUNDLE true
-#            MACOSX_BUNDLE true
-            XCODE_ATTRIBUTE_MACH_O_TYPE mh_bundle
-            XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas"
-            XCODE_ATTRIBUTE_GENERATE_PKGINFO_FILE "YES"
-            XCODE_ATTRIBUTE_DEPLOYMENT_LOCATION YES
-            XCODE_ATTRIBUTE_DSTROOT "/"
-            XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER ${BUNDLE_IDENTIFIER}
-            MACOSX_BUNDLE_GUI_IDENTIFIER ${BUNDLE_IDENTIFIER}
-            MACOSX_BUNDLE_BUNDLE_VERSION ${VERSION}
-            BUNDLE_EXTENSION "${OSX_EXTENSION}"
-            XCODE_ATTRIBUTE_WRAPPER_EXTENSION "${OSX_EXTENSION}"
-            XCODE_ATTRIBUTE_INSTALL_PATH "${OSX_INSTALL_PATH}"
-            XCODE_ATTRIBUTE_INFOPLIST_FILE ${PLIST}
-            MACOSX_BUNDLE_INFO_PLIST ${PLIST}
-            XCODE_ATTRIBUTE_INFOPLIST_PREPROCESS "YES"
-            XCODE_ATTRIBUTE_CURRENT_PROJECT_VERSION ${VERSION}
-    )
+    if(APPLE)
+        set_target_properties(${target} 
+            PROPERTIES 
+                OUTPUT_NAME ${PRODUCT_NAME}
+                XCODE_ATTRIBUTE_PRODUCT_NAME ${PRODUCT_NAME}
+                BUNDLE true
+    #            MACOSX_BUNDLE true
+                XCODE_ATTRIBUTE_MACH_O_TYPE mh_bundle
+                XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas"
+                XCODE_ATTRIBUTE_GENERATE_PKGINFO_FILE "YES"
+                XCODE_ATTRIBUTE_DEPLOYMENT_LOCATION YES
+                XCODE_ATTRIBUTE_DSTROOT "/"
+                XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER ${BUNDLE_IDENTIFIER}
+                MACOSX_BUNDLE_GUI_IDENTIFIER ${BUNDLE_IDENTIFIER}
+                MACOSX_BUNDLE_BUNDLE_VERSION ${VERSION}
+                BUNDLE_EXTENSION "${OSX_EXTENSION}"
+                XCODE_ATTRIBUTE_WRAPPER_EXTENSION "${OSX_EXTENSION}"
+                XCODE_ATTRIBUTE_INSTALL_PATH "${OSX_INSTALL_PATH}"
+                XCODE_ATTRIBUTE_INFOPLIST_FILE ${PLIST}
+                MACOSX_BUNDLE_INFO_PLIST ${PLIST}
+#                XCODE_ATTRIBUTE_INFOPLIST_PREPROCESS "YES"
+                XCODE_ATTRIBUTE_CURRENT_PROJECT_VERSION ${VERSION}
+        )
+    endif()
 endfunction()
 
+function(juce_set_app_bundle_properties target)
+    if(APPLE)
+        set_target_properties(${target} 
+            PROPERTIES 
+                OUTPUT_NAME ${PRODUCT_NAME}
+                XCODE_ATTRIBUTE_PRODUCT_NAME ${PRODUCT_NAME}
+                #BUNDLE true
+                MACOSX_BUNDLE true
+#                XCODE_ATTRIBUTE_MACH_O_TYPE mh_bundle
+                XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas"
+                XCODE_ATTRIBUTE_GENERATE_PKGINFO_FILE "YES"
+                XCODE_ATTRIBUTE_DEPLOYMENT_LOCATION YES
+                XCODE_ATTRIBUTE_DSTROOT "/"
+                XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER ${BUNDLE_IDENTIFIER}
+                MACOSX_BUNDLE_GUI_IDENTIFIER ${BUNDLE_IDENTIFIER}
+                MACOSX_BUNDLE_BUNDLE_VERSION ${VERSION}
+ #               BUNDLE_EXTENSION "${OSX_EXTENSION}"
+ #               XCODE_ATTRIBUTE_WRAPPER_EXTENSION "${OSX_EXTENSION}"
+                XCODE_ATTRIBUTE_INSTALL_PATH "${OSX_INSTALL_PATH}"
+                XCODE_ATTRIBUTE_INFOPLIST_FILE ${PLIST}
+                MACOSX_BUNDLE_INFO_PLIST ${PLIST}
+#                XCODE_ATTRIBUTE_INFOPLIST_PREPROCESS "YES"
+                XCODE_ATTRIBUTE_CURRENT_PROJECT_VERSION ${VERSION}
+        )
+    endif()
+endfunction()
 
 function(juce_add_vst target sources)
     set(OSX_EXTENSION "vst")
@@ -693,7 +721,9 @@ function(juce_add_vst target sources)
     set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-VST.plist.in")
     set(PLIST "${CMAKE_BINARY_DIR}/JuceLibraryCode/${target}_Info.plist")
 
-    configure_file("${PLIST_IN}" "${PLIST}" @ONLY)
+    if(APPLE)
+        configure_file("${PLIST_IN}" "${PLIST}" @ONLY)
+    endif()
 
     add_library(${target} MODULE ${sources})
     juce_set_bundle_properties(${target})
@@ -721,6 +751,21 @@ function(juce_add_au target sources)
         )
     endif()
 endfunction()
+
+function(juce_add_standalone target sources)
+    #set(OSX_INSTALL_PATH "$(HOME)/Library/Audio/Plug-Ins/VST/")
+    set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-Standalone_Plugin.plist.in")
+    set(PLIST "${CMAKE_BINARY_DIR}/JuceLibraryCode/${target}_Info.plist")
+
+    if(APPLE)
+        configure_file("${PLIST_IN}" "${PLIST}" @ONLY)
+    endif()
+
+    add_executable(${target} ${sources})
+    juce_set_app_bundle_properties(${target})
+
+endfunction()
+
 
 
 function(juce_generate_plugin_definitions var)
@@ -950,6 +995,8 @@ function(juce_add_audio_plugin)
             juce_add_vst(${target_name} "${SOURCES}")
         elseif(${format} MATCHES AU)
             juce_add_au(${target_name} "${SOURCES}")
+        elseif(${format} MATCHES Standalone)
+            juce_add_standalone(${target_name} "${SOURCES}")
         else()
             message("juce_add_audio_plugins: format '${format}' not implemented")
             return()
