@@ -35,7 +35,7 @@
         <key>factoryFunction</key>
         <string>@PLUGIN_AU_EXPORT_PREFIX@Factory</string>
         <key>manufacturer</key>
-        <string>@COMPANY_NAME@</string>
+        <string>@PLUGIN_MANUFACTURER_CODE@</string>
         <key>type</key>
         <string>@AU_TYPE_CODE@</string>
         <key>subtype</key>
