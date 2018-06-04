@@ -317,6 +317,7 @@ macro(juce_add_module module)
             if(${module} MATCHES juce_audio_plugin_client)
                 if(APPLE)
                     list(APPEND JUCE_${module}_platformlibs ${JUCE_LIB_AudioUnit})
+                    list(APPEND JUCE_${module}_platformlibs ${JUCE_LIB_CoreAudioKit})
                 endif()
             endif()
 
@@ -349,7 +350,9 @@ endmacro()
 # hard coded add_dependencies
 if(APPLE)
     find_library(JUCE_LIB_AudioUnit AudioUnit)
+    find_library(JUCE_LIB_CoreAudioKit CoreAudioKit)
     mark_as_advanced(JUCE_LIB_AudioUnit)
+    mark_as_advanced(JUCE_LIB_CoreAudioKit)
 endif()
 
 #------------------------------------------------------------------------------
@@ -856,6 +859,8 @@ endfunction()
 
 function(juce_add_audio_plugin)
     # TODO: support RESOURCES
+    # TODO: add optional VST_CATEGORY and AU_MAIN_TYPE to force plugin type
+    # TODO: add optional PLUGIN_CHANNEL_CONFIGURATIONS
 
     set(required_properties
         PRODUCT_NAME 
