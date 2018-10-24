@@ -355,6 +355,57 @@ if(APPLE)
     mark_as_advanced(JUCE_LIB_CoreAudioKit)
 endif()
 
+function(juce_dec_to_hex dec_value out_hex_value)
+  if(dec_value EQUAL 0)
+    set(${out_hex_value} "0x0" PARENT_SCOPE)
+    return()
+  endif()
+
+  if(dec_value LESS 0)
+    math(EXPR dec_value "2147483647 ${dec_value} + 1")
+  endif()
+
+  while(dec_value GREATER 0)
+    math(EXPR hex_unit "${dec_value} & 15")
+    if(hex_unit LESS 10)
+      set(hex_char ${hex_unit})
+    else()
+      math(EXPR hex_unit "${hex_unit} + 87")
+      string(ASCII ${hex_unit} hex_char)
+    endif()
+    set(hex_value "${hex_char}${hex_value}")
+    math(EXPR dec_value "${dec_value} >> 4")
+  endwhile()
+
+  set(${out_hex_value} "0x${hex_value}" PARENT_SCOPE)
+endfunction()
+
+function(juce_version_to_dec version out_dec_value)
+  string(REPLACE "." ";" segments "${version}")
+  list(LENGTH segments segments_size)
+  while(segments_size LESS 3)
+    list(APPEND segments 0)
+    math(EXPR segments_size "${segments_size} + 1")
+  endwhile()
+  list(GET segments 0 major)
+  list(GET segments 1 minor)
+  list(GET segments 2 patch)
+  math(EXPR dec_value "(${major} << 16) + (${minor} << 8) + ${patch}")
+  if(segments_size GREATER 3)
+    list(GET segments 3 revision)
+    math(EXPR dec_value "${dec_value} << 8 + ${revision}")
+  endif()
+
+  set(${out_dec_value} "${dec_value}" PARENT_SCOPE)
+endfunction()
+
+
+function(juce_version_to_hex version out_hex_value)
+  juce_version_to_dec("${version}" dec_value)
+  juce_dec_to_hex("${dec_value}" hex_value)
+  set(${out_hex_value} "${hex_value}" PARENT_SCOPE)
+endfunction()
+
 #------------------------------------------------------------------------------
 # First find JUCE
 find_path(JUCE_ROOT_DIR 
@@ -426,6 +477,7 @@ set(JUCE_APPCONFIG_H "${JuceLibraryCode}/AppConfig.h")
 juce_generate_app_config(${JUCE_APPCONFIG_H})
 
 # generate JuceHeader.h
+juce_version_to_hex(${VERSION} VERSION_HEX)
 set(JUCE_HEADER_H "${JuceLibraryCode}/JuceHeader.h")
 juce_generate_juce_header(${JUCE_HEADER_H})
 
@@ -588,33 +640,6 @@ macro(juce_get_IAATypeCode var)
     endif()
 endmacro()
 
-
-function(juce_dec_to_hex dec_value out_hex_value)
-  if(dec_value EQUAL 0)
-    set(${out_hex_value} "0x0" PARENT_SCOPE)
-    return()
-  endif()
-
-  if(dec_value LESS 0)
-    math(EXPR dec_value "2147483647 ${dec_value} + 1")
-  endif()
-
-  while(dec_value GREATER 0)
-    math(EXPR hex_unit "${dec_value} & 15")
-    if(hex_unit LESS 10)
-      set(hex_char ${hex_unit})
-    else()
-      math(EXPR hex_unit "${hex_unit} + 87")
-      string(ASCII ${hex_unit} hex_char)
-    endif()
-    set(hex_value "${hex_char}${hex_value}")
-    math(EXPR dec_value "${dec_value} >> 4")
-  endwhile()
-
-  set(${out_hex_value} "0x${hex_value}" PARENT_SCOPE)
-endfunction()
-
-
 function(juce_four_chars_to_hex value out_hex_value)
   foreach(ascii_code RANGE 1 127)
     list(APPEND all_ascii_codes ${ascii_code})
@@ -636,33 +661,6 @@ function(juce_four_chars_to_hex value out_hex_value)
   juce_dec_to_hex("${dec_value}" hex_value)
   set(${out_hex_value} "${hex_value}" PARENT_SCOPE)
 endfunction()
-
-function(juce_version_to_dec version out_dec_value)
-  string(REPLACE "." ";" segments "${version}")
-  list(LENGTH segments segments_size)
-  while(segments_size LESS 3)
-    list(APPEND segments 0)
-    math(EXPR segments_size "${segments_size} + 1")
-  endwhile()
-  list(GET segments 0 major)
-  list(GET segments 1 minor)
-  list(GET segments 2 patch)
-  math(EXPR dec_value "(${major} << 16) + (${minor} << 8) + ${patch}")
-  if(segments_size GREATER 3)
-    list(GET segments 3 revision)
-    math(EXPR dec_value "${dec_value} << 8 + ${revision}")
-  endif()
-
-  set(${out_dec_value} "${dec_value}" PARENT_SCOPE)
-endfunction()
-
-
-function(juce_version_to_hex version out_hex_value)
-  juce_version_to_dec("${version}" dec_value)
-  juce_dec_to_hex("${dec_value}" hex_value)
-  set(${out_hex_value} "${hex_value}" PARENT_SCOPE)
-endfunction()
-
 
 function(juce_set_bundle_properties target)
     if(APPLE)
@@ -980,7 +978,6 @@ function(juce_add_audio_plugin)
         endif()
     endforeach()
 
-    juce_version_to_hex(${VERSION} VERSION_HEX)
     juce_four_chars_to_hex(${PLUGIN_CODE} PLUGIN_CODE_INT)
     juce_four_chars_to_hex(${PLUGIN_MANUFACTURER_CODE} PLUGIN_MANUFACTURER_CODE_INT)
 
