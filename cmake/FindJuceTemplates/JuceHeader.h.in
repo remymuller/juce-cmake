@@ -26,7 +26,7 @@ ${JUCE_MODULE_INCLUDES}
 namespace ProjectInfo
 {
     const char* const  projectName    = "${JuceProjectName}";
-    const char* const  versionString  = "${VERSION}";
-    const int          versionNumber  = ${VERSION_HEX};
+    const char* const  versionString  = "${JUCE_PROJECT_VERSION}";
+    const int          versionNumber  = ${JUCE_PROJECT_VERSION_HEX};
 }
 #endif
