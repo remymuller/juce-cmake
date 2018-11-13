@@ -976,7 +976,6 @@ function(juce_add_audio_plugin)
         endif()
     endforeach()
 
-    # set enabled formats
     set(possible_formats VST AU VST3 AUv3 Standalone AAX RTAS)
     foreach(format ${possible_formats})
         if(${format} IN_LIST FORMATS)
@@ -989,9 +988,6 @@ function(juce_add_audio_plugin)
     juce_four_chars_to_hex(${PLUGIN_CODE} PLUGIN_CODE_INT)
     juce_four_chars_to_hex(${PLUGIN_MANUFACTURER_CODE} PLUGIN_MANUFACTURER_CODE_INT)
 
-    # generate the list of preprocessor defines
-    juce_generate_plugin_definitions(plugin_definitions)
-
     # TOOD: create SharedCode target
     # for that we need that plugin specific code is not compiled in juce_audio_plugin_client
     # 
@@ -999,6 +995,18 @@ function(juce_add_audio_plugin)
     # create one target per format
     foreach(format ${FORMATS})
         set(target_name ${PRODUCT_NAME}${format})
+        
+        # reset all formats
+        foreach(format_ ${possible_formats})
+            set(BUILD_${format_} 0)
+        endforeach()
+
+        # set enabled format
+        set(BUILD_${format} 1)
+
+		# generate the list of preprocessor defines
+        unset(plugin_definitions)
+        juce_generate_plugin_definitions(plugin_definitions)
 
         if(${format} MATCHES VST)
             juce_add_vst(${target_name} "${SOURCES}")
