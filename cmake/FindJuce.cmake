@@ -290,6 +290,7 @@ macro(juce_add_module module)
 		# debug
 		#message("juce_add_module: YES\t${module}")
 
+        # TODO: look for ${JUCE_MODULES_PATHS} and populate with ${JUCE_MODULES_PREFIX}
 		set(JUCE_${module}_HEADER "${JUCE_MODULES_PREFIX}/${module}/${module}.h" CACHE PATH "Header for JUCE module ${module}")
         mark_as_advanced(JUCE_${module}_HEADER)
 
@@ -408,6 +409,7 @@ endfunction()
 
 #------------------------------------------------------------------------------
 # First find JUCE
+# TODO: look for juce_core/juce_core.h instead 
 find_path(JUCE_ROOT_DIR 
 	"modules/JUCE Module Format.txt"
 	HINTS
