@@ -799,7 +799,7 @@ function(juce_generate_plugin_definitions var)
          JucePlugin_IsMidiEffect=${PLUGIN_IS_MIDI_EFFECT}
          JucePlugin_EditorRequiresKeyboardFocus=${PLUGIN_EDITOR_REQUIRES_KEYS}
          JucePlugin_Version=${VERSION}
-         JucePlugin_VersionCode=${VERSION_HEX}
+         JucePlugin_VersionCode=${JUCE_PROJECT_VERSION_HEX}
          JucePlugin_VersionString="${VERSION}"
          JucePlugin_CFBundleIdentifier=${BUNDLE_IDENTIFIER}
     )
