@@ -31,9 +31,6 @@ set(common_definitions
     JUCE_PLUGINHOST_AU=0
 )
 
-find_package(AAXSDK REQUIRED)
-find_package(VST3SDK REQUIRED)
-
 juce_add_audio_plugin(
     PRODUCT_NAME                ${PROJECT_NAME}
     VERSION                     1.0.0
@@ -55,8 +52,6 @@ juce_add_audio_plugin(
     COMPANY_WEBSITE             www.juce.com
     AAX_IDENTIFIER              com.yourcompany.JuceDemoPlugin
     AAX_CATEGORY                AAX_ePlugInCategory_Dynamics
-    AAX_SDK                     "${AAXSDK_ROOT}"
-    VST3_SDK                    "${VST3SDK_ROOT}"
     BUNDLE_IDENTIFIER           com.juce.JuceDemoPlugin
     FORMATS                     VST AU Standalone AAX VST3 # AUv3
     DEFINITIONS                 ${common_definitions}
