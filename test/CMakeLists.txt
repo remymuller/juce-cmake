@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 project(JUCE)
 
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/../cmake")
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/../cmake; ${CMAKE_MODULE_PATH};")
 
 macro(add_project path)
 	string(MAKE_C_IDENTIFIER ${path} JUCE_CURRENT_TARGET_PREFIX)
