@@ -41,7 +41,9 @@
         <key>subtype</key>
         <string>@PLUGIN_CODE@</string>  
         <key>version</key>
-        <integer>@VERSION_HEX@</integer>
+        <integer>@JUCE_PROJECT_VERSION_HEX@</integer>
+        <key>sandboxSafe</key>
+        <true/>
       </dict>
     </array>
   </dict>
