@@ -50,4 +50,8 @@ ${JUCE_MODULES_AVAILABLE}
 
 ${JUCE_CONFIG_FLAGS}
 
+#ifndef  JucePlugin_VSTUniqueID
+ #define JucePlugin_VSTUniqueID            JucePlugin_PluginCode
+#endif
+
 

@@ -32,6 +32,7 @@ set(common_definitions
 )
 
 find_package(AAXSDK REQUIRED)
+find_package(VST3SDK REQUIRED)
 
 juce_add_audio_plugin(
     PRODUCT_NAME                ${PROJECT_NAME}
@@ -55,8 +56,9 @@ juce_add_audio_plugin(
     AAX_IDENTIFIER              com.yourcompany.JuceDemoPlugin
     AAX_CATEGORY                AAX_ePlugInCategory_Dynamics
     AAX_SDK                     "${AAXSDK_ROOT}"
+    VST3_SDK                    "${VST3SDK_ROOT}"
     BUNDLE_IDENTIFIER           com.juce.JuceDemoPlugin
-    FORMATS                     VST AU Standalone AAX # VST3 AUv3
+    FORMATS                     VST AU Standalone AAX VST3 # AUv3
     DEFINITIONS                 ${common_definitions}
     SOURCES                     ${SOURCES}
     LIBRARIES                   ${JUCE_LIBRARIES}

@@ -800,6 +800,21 @@ function(juce_add_aax target sources sdk_path)
     )
 endfunction()
 
+function(juce_add_vst3 target sources sdk_path)
+    set(OSX_EXTENSION "vst3")
+    set(OSX_INSTALL_PATH "$(HOME)/Library/Audio/Plug-Ins/VST3/")
+    set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-VST3.plist.in")
+    set(PLIST "${CMAKE_BINARY_DIR}/JuceLibraryCode/${target}_Info.plist")
+
+    if(APPLE)
+       configure_file("${PLIST_IN}" "${PLIST}" @ONLY)
+    endif()
+
+    add_library(${target} MODULE ${sources})
+    juce_set_bundle_properties(${target})
+    target_include_directories(${target} PUBLIC "${sdk_path}")
+endfunction()
+
 function(juce_add_standalone target sources)
     #set(OSX_INSTALL_PATH "$(HOME)/Library/Audio/Plug-Ins/VST/")
     set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-Standalone_Plugin.plist.in")
@@ -839,6 +854,7 @@ function(juce_generate_plugin_definitions var)
          JucePlugin_ManufacturerEmail="${PLUGIN_MANUFACTURER_EMAIL}"      
          JucePlugin_ManufacturerCode='${PLUGIN_MANUFACTURER_CODE}'       
          JucePlugin_PluginCode='${PLUGIN_CODE}'
+         # JucePlugin_VSTUniqueID='${PLUGIN_CODE}'
          JucePlugin_IsSynth=${PLUGIN_IS_SYNTH}
          JucePlugin_WantsMidiInput=${PLUGIN_WANTS_MIDI_IN}         
          JucePlugin_ProducesMidiOutput=${PLUGIN_PRODUCES_MIDI_OUT}
@@ -945,6 +961,10 @@ function(juce_add_audio_plugin)
         AAX_SDK
     )
 
+    set(required_properties_VST3
+        VST3_SDK
+    )
+
     set(required_properties_AU
         PLUGIN_AU_EXPORT_PREFIX
         PLUGIN_AU_VIEW_CLASS
@@ -974,6 +994,7 @@ function(juce_add_audio_plugin)
         AAX_IDENTIFIER
         AAX_CATEGORY
         AAX_SDK
+        VST3_SDK
         ENABLE_IAA
     )
     set(multiValueArgs FORMATS DEFINITIONS SOURCES LIBRARIES INCLUDES)
@@ -1058,18 +1079,20 @@ function(juce_add_audio_plugin)
         unset(plugin_definitions)
         juce_generate_plugin_definitions(plugin_definitions)
 
-        if(${format} MATCHES VST)
+        if(${format} MATCHES VST3)
+            juce_add_vst3(${target_name} "${SOURCES}" "${VST3_SDK}")
+        elseif(${format} MATCHES VST)
             juce_add_vst(${target_name} "${SOURCES}")
+        elseif(${format} MATCHES AAX)
+            juce_add_aax(${target_name} "${SOURCES}" "${AAX_SDK}")
+        elseif(${format} MATCHES Standalone)
+            juce_add_standalone(${target_name} "${SOURCES}")
         elseif(${format} MATCHES AU)
             if(APPLE)            
                 juce_add_au(${target_name} "${SOURCES}")
             else()
                 continue()
             endif()
-        elseif(${format} MATCHES AAX)
-            juce_add_aax(${target_name} "${SOURCES}" "${AAX_SDK}")
-        elseif(${format} MATCHES Standalone)
-            juce_add_standalone(${target_name} "${SOURCES}")
         else()
             message("juce_add_audio_plugins: format '${format}' not implemented")
             return()
