@@ -754,6 +754,7 @@ function(juce_add_au target sources)
     )
 endfunction()
 
+
 function(juce_add_aax target sources sdk_path)
     set(OSX_EXTENSION "aaxplugin")
     set(OSX_INSTALL_PATH "/Library/Application Support/Avid/Audio/Plug-Ins/")
@@ -767,38 +768,12 @@ function(juce_add_aax target sources sdk_path)
     add_library(${target} MODULE ${sources})
     juce_set_bundle_properties(${target})
 
-    # find AAXLibrary_libcpp and link against it
-    # AAX SDK include paths: 
-    set(AAX_SDK_INCLUDES 
-        "${sdk_path}" 
-        "${sdk_path}/Interfaces" 
-        "${sdk_path}/Interfaces/ACF"
-    )
-    target_include_directories(${target} PUBLIC "${AAX_SDK_INCLUDES}")
-
-    # library search paths 
-    find_library(AAXSDK_LIB_DEBUG
-        NAMES 
-            libAAXLibrary_libcpp.a
-            libAAXLibrary_libcpp.lib
-        PATHS
-            "${sdk_path}/Libs/Debug/"
-        NO_DEFAULT_PATH
-    )
-    find_library(AAXSDK_LIB_RELEASE
-        NAMES 
-            libAAXLibrary_libcpp.a
-            libAAXLibrary_libcpp.lib
-        PATHS
-            "${sdk_path}/Libs/Release/"
-        NO_DEFAULT_PATH
-    )
-    target_link_libraries(${target} 
-        PUBLIC 
-            "$<$<CONFIG:Debug>:${AAXSDK_LIB_DEBUG}>"            
-            "$<$<CONFIG:Release>:${AAXSDK_LIB_RELEASE}>"
-    )
+    if(NOT TARGET AAXSDK::AAXSDK)
+        find_package(AAXSDK REQUIRED)
+    endif()
+    target_link_libraries(${target} PUBLIC AAXSDK::AAXSDK) 
 endfunction()
+
 
 function(juce_add_vst3 target sources sdk_path)
     set(OSX_EXTENSION "vst3")
@@ -812,8 +787,13 @@ function(juce_add_vst3 target sources sdk_path)
 
     add_library(${target} MODULE ${sources})
     juce_set_bundle_properties(${target})
-    target_include_directories(${target} PUBLIC "${sdk_path}")
+
+    if(NOT TARGET VST3SDK::VST3SDK)
+        find_package(VST3SDK REQUIRED)
+    endif()
+    target_link_libraries(${target} PUBLIC VST3SDK::VST3SDK) 
 endfunction()
+
 
 function(juce_add_standalone target sources)
     #set(OSX_INSTALL_PATH "$(HOME)/Library/Audio/Plug-Ins/VST/")
