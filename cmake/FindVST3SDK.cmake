@@ -33,8 +33,6 @@ find_path(VSTSDK_ROOT
 set(VST3SDK_ROOT "${VSTSDK_ROOT}/VST3_SDK")
 set(VST2SDK_ROOT "${VSTSDK_ROOT}/VST2_SDK")
 
-# TODO: export a VST::VST3 target
-
 # handle the QUIETLY and REQUIRED arguments and set AAXSDK_FOUND to TRUE if 
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
@@ -42,3 +40,13 @@ find_package_handle_standard_args(VST3SDK DEFAULT_MSG VST3SDK_ROOT VST2SDK_ROOT 
 mark_as_advanced(VST3SDK_ROOT)
 mark_as_advanced(VST2SDK_ROOT)
 mark_as_advanced(VSTSDK_ROOT)
+
+# export a VST3SDK::VST3SDK target
+if(VST3SDK_FOUND)
+	if(NOT TARGET VST3SDK::VST3SDK)
+    	add_library(VST3SDK::VST3SDK INTERFACE IMPORTED)
+    	set_target_properties(VST3SDK::VST3SDK PROPERTIES
+        	INTERFACE_INCLUDE_DIRECTORIES "${VST3SDK_ROOT}"
+    	)
+	endif()
+endif()
