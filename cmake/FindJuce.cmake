@@ -754,6 +754,52 @@ function(juce_add_au target sources)
     )
 endfunction()
 
+function(juce_add_aax target sources sdk_path)
+    set(OSX_EXTENSION "aaxplugin")
+    set(OSX_INSTALL_PATH "/Library/Application Support/Avid/Audio/Plug-Ins/")
+    set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-AAX.plist.in")
+    set(PLIST "${CMAKE_BINARY_DIR}/JuceLibraryCode/${target}_Info.plist")
+
+    if(APPLE)
+        configure_file("${PLIST_IN}" "${PLIST}" @ONLY)
+    endif()
+
+    add_library(${target} MODULE ${sources})
+    juce_set_bundle_properties(${target})
+
+    # find AAXLibrary_libcpp and link against it
+    # AAX SDK include paths: 
+    set(AAX_SDK_INCLUDES 
+        "${sdk_path}" 
+        "${sdk_path}/Interfaces" 
+        "${sdk_path}/Interfaces/ACF"
+    )
+    target_include_directories(${target} PUBLIC "${AAX_SDK_INCLUDES}")
+
+    # library search paths 
+    find_library(AAXSDK_LIB_DEBUG
+        NAMES 
+            libAAXLibrary_libcpp.a
+            libAAXLibrary_libcpp.lib
+        PATHS
+            "${sdk_path}/Libs/Debug/"
+        NO_DEFAULT_PATH
+    )
+    find_library(AAXSDK_LIB_RELEASE
+        NAMES 
+            libAAXLibrary_libcpp.a
+            libAAXLibrary_libcpp.lib
+        PATHS
+            "${sdk_path}/Libs/Release/"
+        NO_DEFAULT_PATH
+    )
+    target_link_libraries(${target} 
+        PUBLIC 
+            "$<$<CONFIG:Debug>:${AAXSDK_LIB_DEBUG}>"            
+            "$<$<CONFIG:Release>:${AAXSDK_LIB_RELEASE}>"
+    )
+endfunction()
+
 function(juce_add_standalone target sources)
     #set(OSX_INSTALL_PATH "$(HOME)/Library/Audio/Plug-Ins/VST/")
     set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-Standalone_Plugin.plist.in")
@@ -896,6 +942,7 @@ function(juce_add_audio_plugin)
     set(required_properties_AAX
         AAX_IDENTIFIER
         AAX_CATEGORY
+        AAX_SDK
     )
 
     set(required_properties_AU
@@ -926,6 +973,7 @@ function(juce_add_audio_plugin)
         PLUGIN_AU_VIEW_CLASS
         AAX_IDENTIFIER
         AAX_CATEGORY
+        AAX_SDK
         ENABLE_IAA
     )
     set(multiValueArgs FORMATS DEFINITIONS SOURCES LIBRARIES INCLUDES)
@@ -1018,6 +1066,8 @@ function(juce_add_audio_plugin)
             else()
                 continue()
             endif()
+        elseif(${format} MATCHES AAX)
+            juce_add_aax(${target_name} "${SOURCES}" "${AAX_SDK}")
         elseif(${format} MATCHES Standalone)
             juce_add_standalone(${target_name} "${SOURCES}")
         else()
