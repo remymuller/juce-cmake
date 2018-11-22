@@ -1,8 +1,8 @@
 # - Try to find the AAX SDK
 # Once done this will define
 # 
-#  AAXSDK_FOUND - system has AAXSDK SDK
-#  AAXSDK_ROOT - the AAXSDK SDK root directory
+#  AAXSDK_FOUND - system has AAX SDK
+#  AAXSDK_ROOT - the AAX SDK root directory
 
 set(results "")
 foreach(basedir "${CMAKE_CURRENT_SOURCE_DIR}/" "${CMAKE_CURRENT_LIST_DIR}/" "$ENV{HOME}/" "C:/")
@@ -18,7 +18,6 @@ endforeach()
 
 foreach(f ${results})
   if(IS_DIRECTORY ${f})
-	message("AAXSDK_SEARCH_PATHS_HINT ${f}")
     set(AAXSDK_SEARCH_PATHS_HINT ${AAXSDK_SEARCH_PATHS_HINT} ${f})
   endif()
 endforeach()
@@ -28,6 +27,8 @@ find_path(AAXSDK_ROOT
 	HINTS
     	${AAXSDK_SEARCH_PATHS_HINT}
 )
+
+# TODO: export an AAX::AAX target
 
 # handle the QUIETLY and REQUIRED arguments and set AAXSDK_FOUND to TRUE if 
 # all listed variables are TRUE
