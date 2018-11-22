@@ -6,7 +6,15 @@
 #  VST2SDK_ROOT - the VST3 SDK root directory
 #  VSTSDK_ROOT - the VST3 SDK root directory
 
+# TODO inherit the paths from somewhere
+
 set(results "")
+
+# if the variable is already defined, set it as the first hint
+if(DEFINED VST3SDK_ROOT)
+	set(results ${results} "${VST3SDK_ROOT}/../")
+endif()
+
 foreach(basedir "${CMAKE_CURRENT_SOURCE_DIR}/" "${CMAKE_CURRENT_LIST_DIR}/" "$ENV{HOME}/" "C:/")
 	foreach(level "" "../" "../../")
 		foreach(suffix "" "SDKs/")
