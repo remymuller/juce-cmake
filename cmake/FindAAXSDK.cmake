@@ -22,7 +22,7 @@ if(DEFINED AAXSDK_ROOT)
 	set(results ${results} "${AAXSDK_ROOT}")
 endif()
 
-foreach(basedir "${CMAKE_CURRENT_SOURCE_DIR}/" "${CMAKE_CURRENT_LIST_DIR}/" "$ENV{HOME}/" "C:/")
+foreach(basedir "C:/" "D:/" "$ENV{HOME}/" "${CMAKE_CURRENT_SOURCE_DIR}/" "${CMAKE_CURRENT_LIST_DIR}/")
 	foreach(level "" "../" "../../")
 		foreach(suffix "" "SDKs/")
             foreach(pattern "AAX_SDK_2p3p1" "AAX_SDK" "AAX")
