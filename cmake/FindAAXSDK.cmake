@@ -68,6 +68,7 @@ if(AAXSDK_FOUND)
             "${AAXSDK_ROOT}/Libs/Debug/"
         NO_DEFAULT_PATH
     )
+    mark_as_advanced(AAXSDK_LIB_DEBUG)
 
     find_library(AAXSDK_LIB_RELEASE
         NAMES 
@@ -77,14 +78,32 @@ if(AAXSDK_FOUND)
             "${AAXSDK_ROOT}/Libs/Release/"
         NO_DEFAULT_PATH
     )
+    mark_as_advanced(AAXSDK_LIB_RELEASE)
+
+    find_program(AAXSDK_CREATE_PACKAGE
+    	 "${AAXSDK_ROOT}/Utilities/CreatePackage.bat"
+    )
+    mark_as_advanced(AAXSDK_CREATE_PACKAGE)
 
 	if(NOT TARGET AAXSDK::AAXSDK)
     	add_library(AAXSDK::AAXSDK INTERFACE IMPORTED)
     	set_target_properties(AAXSDK::AAXSDK PROPERTIES
         	INTERFACE_INCLUDE_DIRECTORIES "${AAXSDK_INCLUDE_DIRS}"
     	)
-    	set_target_properties(AAXSDK::AAXSDK PROPERTIES 
-    		INTERFACE_LINK_LIBRARIES 
-    		"$<IF:$<CONFIG:Debug>,${AAXSDK_LIB_DEBUG},${AAXSDK_LIB_RELEASE}>")
+
+    	if(APPLE)
+	    	set_target_properties(AAXSDK::AAXSDK PROPERTIES 
+    			INTERFACE_LINK_LIBRARIES 
+    			"$<IF:$<CONFIG:Debug>,${AAXSDK_LIB_DEBUG},${AAXSDK_LIB_RELEASE}>")
+	    endif()
+
+	    if(MSVC)
+	    	# on windows juce uses pragma comment(lib) to link against the AAXSDK so we only need to provide the 
+	    	# path to the AAXSDK libs directory
+	    	set_target_properties(AAXSDK::AAXSDK PROPERTIES 
+    			INTERFACE_COMPILE_DEFINITIONS
+    				"JucePlugin_AAXLibs_path=\"${AAXSDK_ROOT}/Libs/\""
+    		)
+	    endif()
 	endif()
 endif()
