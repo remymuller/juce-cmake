@@ -760,7 +760,7 @@ function(juce_add_au target sources)
 endfunction()
 
 
-function(juce_add_aax target sources)
+function(juce_add_aax target sources product_name)
     set(OSX_EXTENSION "aaxplugin")
     set(OSX_INSTALL_PATH "/Library/Application Support/Avid/Audio/Plug-Ins/")
     set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-AAX.plist.in")
@@ -777,6 +777,35 @@ function(juce_add_aax target sources)
         find_package(AAXSDK REQUIRED)
     endif()
     target_link_libraries(${target} PUBLIC AAXSDK::AAXSDK) 
+
+    if(MSVC)
+        set_target_properties(${target} 
+            PROPERTIES 
+                SUFFIX ".aaxdll"
+        )
+
+        set(aax_plugin_path "${product_name}.aaxplugin")
+        set(working_dir "${CMAKE_CURRENT_BINARY_DIR}")
+
+        add_custom_command(TARGET ${target} PRE_BUILD 
+            COMMAND if not exist "\"${aax_plugin_path}\"" mkdir "\"${aax_plugin_path}\""
+            COMMAND if not exist "\"${aax_plugin_path}/Contents\"" mkdir "\"${aax_plugin_path}/Contents\""
+            COMMAND if not exist "\"${aax_plugin_path}/Contents/x64\"" mkdir "\"${aax_plugin_path}/Contents/x64\""
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)"
+        )
+
+        # if(AAXSDK_X64)
+        #     set(aax_plugin_dest_path "${aax_plugin_path}\\Contents\\x64")
+        # else()
+        #     set(aax_plugin_dest_path "${aax_plugin_path}\\Contents")
+        # endif()
+
+        # add_custom_command(TARGET ${target} POST_BUILD 
+        #     COMMAND copy /Y "$<TARGET_FILE:${target}>" "${aax_plugin_dest_path}\\${product_name}.aaxplugin"
+        #     COMMAND call "${AAXSDK_CREATE_PACKAGE}" "${aax_plugin_dest_path}" "${AAXSDK_ROOT}\\Utilities\\PlugIn.ico"
+        #     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)"
+        # )
+    endif()
 endfunction()
 
 
@@ -880,7 +909,6 @@ function(juce_generate_plugin_definitions var)
             JucePlugin_AAXDisableBypass=0
             JucePlugin_AAXDisableMultiMono=0
         )
-        #TODO: JucePlugin_AAXLibs_path="D:\\SDKs\\AAX_SDK_2p3p1\\Libs"
     endif()
 
     if(${BUILD_RTAS})
@@ -1068,7 +1096,7 @@ function(juce_add_audio_plugin)
         elseif(${format} MATCHES VST)
             juce_add_vst(${target_name} "${SOURCES}")
         elseif(${format} MATCHES AAX)
-            juce_add_aax(${target_name} "${SOURCES}")
+            juce_add_aax(${target_name} "${SOURCES}" "${PRODUCT_NAME}")
         elseif(${format} MATCHES Standalone)
             juce_add_standalone(${target_name} "${SOURCES}")
         elseif(${format} MATCHES AU)
