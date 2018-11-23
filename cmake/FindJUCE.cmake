@@ -729,7 +729,12 @@ function(juce_add_vst target sources)
         configure_file("${PLIST_IN}" "${PLIST}" @ONLY)
     endif()
 
+    if(NOT TARGET VST3SDK::VST3SDK)
+        find_package(VST3SDK REQUIRED)
+    endif()
+
     add_library(${target} MODULE ${sources})
+    target_link_libraries(${target} PUBLIC VST3SDK::VST3SDK) 
     juce_set_bundle_properties(${target})
 endfunction()
 
@@ -875,6 +880,7 @@ function(juce_generate_plugin_definitions var)
             JucePlugin_AAXDisableBypass=0
             JucePlugin_AAXDisableMultiMono=0
         )
+        #TODO: JucePlugin_AAXLibs_path="D:\\SDKs\\AAX_SDK_2p3p1\\Libs"
     endif()
 
     if(${BUILD_RTAS})
