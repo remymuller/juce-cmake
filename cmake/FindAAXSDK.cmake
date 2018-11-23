@@ -104,6 +104,12 @@ if(AAXSDK_FOUND)
     			INTERFACE_COMPILE_DEFINITIONS
     				"JucePlugin_AAXLibs_path=\"${AAXSDK_ROOT}/Libs/\""
     		)
+
+    		set_target_properties(AAXSDK::AAXSDK PROPERTIES
+    			INTERFACE_COMPILE_OPTIONS
+    			"$<IF:$<CONFIG:Debug>,/MDd,/MD>"
+
+    		)
 	    endif()
 	endif()
 endif()
