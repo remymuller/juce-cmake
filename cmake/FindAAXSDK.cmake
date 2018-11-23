@@ -4,6 +4,17 @@
 #  AAXSDK_FOUND - system has AAX SDK
 #  AAXSDK_ROOT - the AAX SDK root directory
 
+set(AAXSDK_X64 0)
+set(AAXSDK_LIB_SUFFIX "")
+
+if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(AAXSDK_X64 1)
+	if(MSVC)
+    	set(AAXSDK_LIB_SUFFIX "_x64")
+    endif()
+endif()
+
+
 set(results "")
 
 # if the variable is already defined, set it as the first hint
@@ -52,7 +63,7 @@ if(AAXSDK_FOUND)
     find_library(AAXSDK_LIB_DEBUG
         NAMES 
             libAAXLibrary_libcpp.a
-            libAAXLibrary_libcpp.lib
+            AAXLibrary${AAXSDK_LIB_SUFFIX}_D.lib
         PATHS
             "${AAXSDK_ROOT}/Libs/Debug/"
         NO_DEFAULT_PATH
@@ -61,7 +72,7 @@ if(AAXSDK_FOUND)
     find_library(AAXSDK_LIB_RELEASE
         NAMES 
             libAAXLibrary_libcpp.a
-            libAAXLibrary_libcpp.lib
+            AAXLibrary${AAXSDK_LIB_SUFFIX}.lib
         PATHS
             "${AAXSDK_ROOT}/Libs/Release/"
         NO_DEFAULT_PATH
