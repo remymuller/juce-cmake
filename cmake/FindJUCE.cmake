@@ -791,20 +791,21 @@ function(juce_add_aax target sources product_name)
             COMMAND if not exist "\"${aax_plugin_path}\"" mkdir "\"${aax_plugin_path}\""
             COMMAND if not exist "\"${aax_plugin_path}/Contents\"" mkdir "\"${aax_plugin_path}/Contents\""
             COMMAND if not exist "\"${aax_plugin_path}/Contents/x64\"" mkdir "\"${aax_plugin_path}/Contents/x64\""
+            COMMAND if not exist "\"${aax_plugin_path}/Contents/Win32\"" mkdir "\"${aax_plugin_path}/Contents/Win32\""
             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)"
         )
 
-        # if(AAXSDK_X64)
-        #     set(aax_plugin_dest_path "${aax_plugin_path}\\Contents\\x64")
-        # else()
-        #     set(aax_plugin_dest_path "${aax_plugin_path}\\Contents")
-        # endif()
+        if(AAXSDK_X64)
+            set(aax_plugin_dest_path "${aax_plugin_path}/Contents/x64")
+        else()
+            set(aax_plugin_dest_path "${aax_plugin_path}/Contents/Win32")
+        endif()
 
-        # add_custom_command(TARGET ${target} POST_BUILD 
-        #     COMMAND copy /Y "$<TARGET_FILE:${target}>" "${aax_plugin_dest_path}\\${product_name}.aaxplugin"
-        #     COMMAND call "${AAXSDK_CREATE_PACKAGE}" "${aax_plugin_dest_path}" "${AAXSDK_ROOT}\\Utilities\\PlugIn.ico"
-        #     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)"
-        # )
+        add_custom_command(TARGET ${target} POST_BUILD 
+            COMMAND copy /Y "\"$<TARGET_FILE:${target}>\"" "\"${aax_plugin_dest_path}/${product_name}.aaxplugin\""
+            COMMAND call "\"${AAXSDK_CREATE_PACKAGE}\"" "\"${aax_plugin_dest_path}\"" "\"${AAXSDK_ROOT}/Utilities/PlugIn.ico\""
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)"
+        )
     endif()
 endfunction()
 
