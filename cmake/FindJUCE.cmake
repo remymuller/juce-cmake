@@ -719,7 +719,7 @@ function(juce_set_app_bundle_properties target)
     endif()
 endfunction()
 
-function(juce_add_vst target sources)
+function(juce_add_vst target product_name sources)
     set(OSX_EXTENSION "vst")
     set(OSX_INSTALL_PATH "$(HOME)/Library/Audio/Plug-Ins/VST/")
     set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-VST.plist.in")
@@ -734,12 +734,17 @@ function(juce_add_vst target sources)
     endif()
 
     add_library(${target} MODULE ${sources})
+    set_target_properties(${target} 
+        PROPERTIES 
+        PROJECT_LABEL "${product_name} VST"
+        # OUTPUT_NAME "${product_name}"
+    )
     target_link_libraries(${target} PUBLIC VST3SDK::VST3SDK) 
     juce_set_bundle_properties(${target})
 endfunction()
 
 
-function(juce_add_au target sources)
+function(juce_add_au target product_name sources)
     set(OSX_EXTENSION "component")
     set(OSX_INSTALL_PATH "$(HOME)/Library/Audio/Plug-Ins/Components/")
     set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-AU.plist.in")
@@ -750,6 +755,11 @@ function(juce_add_au target sources)
     configure_file("${PLIST_IN}" "${PLIST}" @ONLY)
 
     add_library(${target} MODULE ${sources})
+    set_target_properties(${target} 
+        PROPERTIES 
+        PROJECT_LABEL "${product_name} AU"
+        # OUTPUT_NAME "${product_name}"
+    )
     juce_set_bundle_properties(${target})
 
     add_custom_command(
@@ -760,7 +770,7 @@ function(juce_add_au target sources)
 endfunction()
 
 
-function(juce_add_aax target sources product_name)
+function(juce_add_aax target product_name sources)
     set(OSX_EXTENSION "aaxplugin")
     set(OSX_INSTALL_PATH "/Library/Application Support/Avid/Audio/Plug-Ins/")
     set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-AAX.plist.in")
@@ -771,6 +781,11 @@ function(juce_add_aax target sources product_name)
     endif()
 
     add_library(${target} MODULE ${sources})
+    set_target_properties(${target} 
+        PROPERTIES 
+        PROJECT_LABEL "${product_name} AAX"
+        # OUTPUT_NAME "${product_name}"
+    )
     juce_set_bundle_properties(${target})
 
     if(NOT TARGET AAXSDK::AAXSDK)
@@ -803,14 +818,15 @@ function(juce_add_aax target sources product_name)
 
         add_custom_command(TARGET ${target} POST_BUILD 
             COMMAND copy /Y "\"$<TARGET_FILE:${target}>\"" "\"${aax_plugin_dest_path}/${product_name}.aaxplugin\""
-            COMMAND call "\"${AAXSDK_CREATE_PACKAGE}\"" "\"${aax_plugin_dest_path}\"" "\"${AAXSDK_ROOT}/Utilities/PlugIn.ico\""
+            COMMAND call "\"${AAXSDK_CREATE_PACKAGE}\"" "\"${aax_plugin_dest_path}\"" "\"${AAXSDK_HOME}/Utilities/PlugIn.ico\"" # TODO move to prebuild step
+            COMMAND xcopy "\"${aax_plugin_path}\"" "\"$(CommonProgramW6432)/Avid/Audio/Plug-Ins/${product_name}.aaxplugin\""  /O /X /E /H /K /Y /I
             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)"
         )
     endif()
 endfunction()
 
 
-function(juce_add_vst3 target sources)
+function(juce_add_vst3 target product_name sources)
     set(OSX_EXTENSION "vst3")
     set(OSX_INSTALL_PATH "$(HOME)/Library/Audio/Plug-Ins/VST3/")
     set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-VST3.plist.in")
@@ -822,6 +838,17 @@ function(juce_add_vst3 target sources)
 
     add_library(${target} MODULE ${sources})
     juce_set_bundle_properties(${target})
+    set_target_properties(${target} 
+        PROPERTIES 
+        PROJECT_LABEL "${product_name} VST3"
+        # OUTPUT_NAME "${product_name}"
+    )
+    if(MSVC)
+        set_target_properties(${target} 
+            PROPERTIES 
+                SUFFIX ".vst3"
+        )
+    endif()
 
     if(NOT TARGET VST3SDK::VST3SDK)
         find_package(VST3SDK REQUIRED)
@@ -830,8 +857,7 @@ function(juce_add_vst3 target sources)
 endfunction()
 
 
-function(juce_add_standalone target sources)
-    #set(OSX_INSTALL_PATH "$(HOME)/Library/Audio/Plug-Ins/VST/")
+function(juce_add_standalone target product_name sources)
     set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-Standalone_Plugin.plist.in")
     set(PLIST "${CMAKE_BINARY_DIR}/JuceLibraryCode/${target}_Info.plist")
 
@@ -840,6 +866,11 @@ function(juce_add_standalone target sources)
     endif()
 
     add_executable(${target} ${sources})
+    set_target_properties(${target} 
+        PROPERTIES 
+        PROJECT_LABEL "${product_name} Standalone"
+        # OUTPUT_NAME "${product_name}"
+    )
     juce_set_app_bundle_properties(${target})
 
     if(MSVC)
@@ -1093,16 +1124,16 @@ function(juce_add_audio_plugin)
         juce_generate_plugin_definitions(plugin_definitions)
 
         if(${format} MATCHES VST3)
-            juce_add_vst3(${target_name} "${SOURCES}")
+            juce_add_vst3(${target_name} "${PRODUCT_NAME}" "${SOURCES}")
         elseif(${format} MATCHES VST)
-            juce_add_vst(${target_name} "${SOURCES}")
+            juce_add_vst(${target_name} "${PRODUCT_NAME}" "${SOURCES}")
         elseif(${format} MATCHES AAX)
-            juce_add_aax(${target_name} "${SOURCES}" "${PRODUCT_NAME}")
+            juce_add_aax(${target_name} "${PRODUCT_NAME}" "${SOURCES}" )
         elseif(${format} MATCHES Standalone)
-            juce_add_standalone(${target_name} "${SOURCES}")
+            juce_add_standalone(${target_name} "${PRODUCT_NAME}" "${SOURCES}")
         elseif(${format} MATCHES AU)
             if(APPLE)            
-                juce_add_au(${target_name} "${SOURCES}")
+                juce_add_au(${target_name} "${PRODUCT_NAME}" "${SOURCES}")
             else()
                 continue()
             endif()

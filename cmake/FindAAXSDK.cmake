@@ -2,7 +2,7 @@
 # Once done this will define
 # 
 #  AAXSDK_FOUND - system has AAX SDK
-#  AAXSDK_ROOT - the AAX SDK root directory
+#  AAXSDK_HOME - the AAX SDK root directory
 
 set(AAXSDK_X64 0)
 set(AAXSDK_LIB_SUFFIX "")
@@ -18,8 +18,8 @@ endif()
 set(results "")
 
 # if the variable is already defined, set it as the first hint
-if(DEFINED AAXSDK_ROOT)
-	set(results ${results} "${AAXSDK_ROOT}")
+if(DEFINED AAXSDK_HOME)
+	set(results ${results} "${AAXSDK_HOME}")
 endif()
 
 foreach(basedir "C:/" "D:/" "$ENV{HOME}/" "${CMAKE_CURRENT_SOURCE_DIR}/" "${CMAKE_CURRENT_LIST_DIR}/")
@@ -39,7 +39,7 @@ foreach(f ${results})
   endif()
 endforeach()
 
-find_path(AAXSDK_ROOT
+find_path(AAXSDK_HOME
 	  Interfaces/AAX.h
 	HINTS
     	${AAXSDK_SEARCH_PATHS_HINT}
@@ -49,15 +49,15 @@ find_path(AAXSDK_ROOT
 # handle the QUIETLY and REQUIRED arguments and set AAXSDK_FOUND to TRUE if 
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(AAXSDK DEFAULT_MSG AAXSDK_ROOT)
-mark_as_advanced(AAXSDK_ROOT)
+find_package_handle_standard_args(AAXSDK DEFAULT_MSG AAXSDK_HOME)
+mark_as_advanced(AAXSDK_HOME)
 
 # export an AAXSDK::AAXSDK target
 if(AAXSDK_FOUND)
 	set(AAXSDK_INCLUDE_DIRS 
-        "${AAXSDK_ROOT}" 
-        "${AAXSDK_ROOT}/Interfaces" 
-        "${AAXSDK_ROOT}/Interfaces/ACF"
+        "${AAXSDK_HOME}" 
+        "${AAXSDK_HOME}/Interfaces" 
+        "${AAXSDK_HOME}/Interfaces/ACF"
 	)
 
     find_library(AAXSDK_LIB_DEBUG
@@ -65,7 +65,7 @@ if(AAXSDK_FOUND)
             libAAXLibrary_libcpp.a
             AAXLibrary${AAXSDK_LIB_SUFFIX}_D.lib
         PATHS
-            "${AAXSDK_ROOT}/Libs/Debug/"
+            "${AAXSDK_HOME}/Libs/Debug/"
         NO_DEFAULT_PATH
     )
     mark_as_advanced(AAXSDK_LIB_DEBUG)
@@ -75,13 +75,13 @@ if(AAXSDK_FOUND)
             libAAXLibrary_libcpp.a
             AAXLibrary${AAXSDK_LIB_SUFFIX}.lib
         PATHS
-            "${AAXSDK_ROOT}/Libs/Release/"
+            "${AAXSDK_HOME}/Libs/Release/"
         NO_DEFAULT_PATH
     )
     mark_as_advanced(AAXSDK_LIB_RELEASE)
 
     find_program(AAXSDK_CREATE_PACKAGE
-    	 "${AAXSDK_ROOT}/Utilities/CreatePackage.bat"
+    	 "${AAXSDK_HOME}/Utilities/CreatePackage.bat"
     )
     mark_as_advanced(AAXSDK_CREATE_PACKAGE)
 
@@ -102,7 +102,7 @@ if(AAXSDK_FOUND)
 	    	# path to the AAXSDK libs directory
 	    	set_target_properties(AAXSDK::AAXSDK PROPERTIES 
     			INTERFACE_COMPILE_DEFINITIONS
-    				"JucePlugin_AAXLibs_path=\"${AAXSDK_ROOT}/Libs/\""
+    				"JucePlugin_AAXLibs_path=\"${AAXSDK_HOME}/Libs/\""
     		)
 
 	    	# # by default the AAXSDK uses the Dynamic Runtime DLL
