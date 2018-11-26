@@ -832,6 +832,10 @@ function(juce_add_vst3 target product_name sources)
     set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-VST3.plist.in")
     set(PLIST "${CMAKE_BINARY_DIR}/JuceLibraryCode/${target}_Info.plist")
 
+    if(NOT TARGET VST3SDK::VST3SDK)
+        find_package(VST3SDK REQUIRED)
+    endif()
+
     if(APPLE)
        configure_file("${PLIST_IN}" "${PLIST}" @ONLY)
     endif()
@@ -862,8 +866,9 @@ function(juce_add_vst3 target product_name sources)
             COMMAND ${CMAKE_COMMAND} -E make_directory "\"${vst3_plugin_path}/Resources\""
             COMMAND ${CMAKE_COMMAND} -E make_directory "\"${vst3_plugin_dest_path}\""
             COMMAND ${CMAKE_COMMAND} -E copy "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/desktop.ini.in" "${vst3_plugin_path}/desktop.ini"
+            COMMAND ${CMAKE_COMMAND} -E copy "${VST3SDK_HOME}/doc/artwork/VST_Logo_Steinberg.ico" "${vst3_plugin_path}/PlugIn.ico"
             COMMAND attrib +s ${vst3_plugin_path}/desktop.ini
-            #COMMAND attrib +s ${vst3_plugin_path}/PlugIn.ico
+            COMMAND attrib +s ${vst3_plugin_path}/PlugIn.ico
             COMMAND attrib +s ${vst3_plugin_path}
             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)"
         )
@@ -874,9 +879,6 @@ function(juce_add_vst3 target product_name sources)
         )
     endif()
 
-    if(NOT TARGET VST3SDK::VST3SDK)
-        find_package(VST3SDK REQUIRED)
-    endif()
     target_link_libraries(${target} PUBLIC VST3SDK::VST3SDK) 
 endfunction()
 
