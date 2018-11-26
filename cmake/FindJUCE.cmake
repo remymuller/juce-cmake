@@ -803,10 +803,7 @@ function(juce_add_aax target product_name sources)
         set(working_dir "${CMAKE_CURRENT_BINARY_DIR}")
 
         add_custom_command(TARGET ${target} PRE_BUILD 
-            COMMAND if not exist "\"${aax_plugin_path}\"" mkdir "\"${aax_plugin_path}\""
-            COMMAND if not exist "\"${aax_plugin_path}/Contents\"" mkdir "\"${aax_plugin_path}/Contents\""
-            COMMAND if not exist "\"${aax_plugin_path}/Contents/x64\"" mkdir "\"${aax_plugin_path}/Contents/x64\""
-            COMMAND if not exist "\"${aax_plugin_path}/Contents/Win32\"" mkdir "\"${aax_plugin_path}/Contents/Win32\""
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${aax_plugin_path}/Contents/x64"
             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)"
         )
 
@@ -817,9 +814,9 @@ function(juce_add_aax target product_name sources)
         endif()
 
         add_custom_command(TARGET ${target} POST_BUILD 
-            COMMAND copy /Y "\"$<TARGET_FILE:${target}>\"" "\"${aax_plugin_dest_path}/${product_name}.aaxplugin\""
+            COMMAND ${CMAKE_COMMAND} -E copy "\"$<TARGET_FILE:${target}>\"" "\"${aax_plugin_dest_path}/${product_name}.aaxplugin\""
             COMMAND call "\"${AAXSDK_CREATE_PACKAGE}\"" "\"${aax_plugin_dest_path}\"" "\"${AAXSDK_HOME}/Utilities/PlugIn.ico\"" # TODO move to prebuild step
-            COMMAND xcopy "\"${aax_plugin_path}\"" "\"$(CommonProgramW6432)/Avid/Audio/Plug-Ins/${product_name}.aaxplugin\""  /O /X /E /H /K /Y /I /C /Q
+            COMMAND xcopy "\"${aax_plugin_path}\"" "\"$(CommonProgramW6432)/Avid/Audio/Plug-Ins/${product_name}.aaxplugin\""  /O /X /E /H /K /Y /I /C /Q /R
             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)"
         )
     endif()
