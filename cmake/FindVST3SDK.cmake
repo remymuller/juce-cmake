@@ -9,12 +9,6 @@
 # TODO inherit the paths from somewhere
 
 
-set(VST3SDK_X64 0)
-
-if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(VST3SDK_X64 1)
-endif()
-
 set(results "")
 
 # if the variable is already defined, set it as the first hint

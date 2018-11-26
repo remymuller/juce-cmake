@@ -849,11 +849,11 @@ function(juce_add_vst3 target product_name sources)
                 SUFFIX ".vst3dll"
         )
 
-        if(VST3SDK_X64)
-            set(vst3_plugin_dest_path "${vst3_plugin_path}/Contents/x86-win")
+        if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+            set(vst3_plugin_dest_path "${vst3_plugin_path}/Contents/x86_64-win")
             set(vst3_plugin_install_path "$(CommonProgramW6432)/VST3/${product_name}.vst3")
         else()
-            set(vst3_plugin_dest_path "${vst3_plugin_path}/Contents/x86_64-win")
+            set(vst3_plugin_dest_path "${vst3_plugin_path}/Contents/x86-win")
             set(vst3_plugin_install_path "$(CommonProgramFiles)/VST3/${product_name}.vst3")
         endif()
 
@@ -966,6 +966,12 @@ function(juce_generate_plugin_definitions var)
         )
     endif()
 
+    if(${BUILD_VST3})
+        list(APPEND ${var}
+            JucePlugin_Vst3Category="${VST3_CATEGORY}"
+        )
+    endif()
+
     if(${BUILD_RTAS})
         list(APPEND ${var}
              JucePlugin_RTASCategory=ePlugInCategory_None
@@ -1030,9 +1036,10 @@ function(juce_add_audio_plugin)
         # AAX_SDK
     )
 
-    # set(required_properties_VST3
-    #     VST3_SDK
-    # )
+    set(required_properties_VST3
+         #VST3_SDK
+         VST3_CATEGORY
+    )
 
     set(required_properties_AU
         PLUGIN_AU_EXPORT_PREFIX
@@ -1062,6 +1069,7 @@ function(juce_add_audio_plugin)
         PLUGIN_AU_VIEW_CLASS
         AAX_IDENTIFIER
         AAX_CATEGORY
+        VST3_CATEGORY
         ENABLE_IAA
     )
     set(multiValueArgs FORMATS DEFINITIONS SOURCES LIBRARIES INCLUDES)
