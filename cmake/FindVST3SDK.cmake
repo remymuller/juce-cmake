@@ -39,13 +39,13 @@ find_path(VSTSDK_HOME
     	${VSTSDK_SEARCH_PATHS_HINT}
 )
 
-set(VST3SDK_HOME "${VSTSDK_HOME}/VST3_SDK")
-set(VST2SDK_HOME "${VSTSDK_HOME}/VST2_SDK")
+set(VST3SDK_HOME "${VSTSDK_HOME}/VST3_SDK" CACHE PATH "path to the VST3_SDK")
+set(VST2SDK_HOME "${VSTSDK_HOME}/VST2_SDK" CACHE PATH "path to the VST2_SDK")
 
 # handle the QUIETLY and REQUIRED arguments and set AAXSDK_FOUND to TRUE if 
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(VST3SDK DEFAULT_MSG VST3SDK_HOME VST2SDK_HOME VSTSDK_HOME)
+find_package_handle_standard_args(VST3SDK DEFAULT_MSG VSTSDK_HOME)
 mark_as_advanced(VST3SDK_HOME)
 mark_as_advanced(VST2SDK_HOME)
 mark_as_advanced(VSTSDK_HOME)
