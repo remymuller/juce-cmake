@@ -775,6 +775,7 @@ function(juce_add_aax target product_name sources)
     set(OSX_INSTALL_PATH "/Library/Application Support/Avid/Audio/Plug-Ins/")
     set(PLIST_IN "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/Info-AAX.plist.in")
     set(PLIST "${CMAKE_BINARY_DIR}/JuceLibraryCode/${target}_Info.plist")
+    set(aax_plugin_path "${product_name}.aaxplugin")
 
     if(APPLE)
         configure_file("${PLIST_IN}" "${PLIST}" @ONLY)
@@ -785,6 +786,7 @@ function(juce_add_aax target product_name sources)
         PROPERTIES 
         PROJECT_LABEL "${product_name} AAX"
         # OUTPUT_NAME "${product_name}"
+        AAX_PLUGIN_PATH "${aax_plugin_path}"
     )
     juce_set_bundle_properties(${target})
 
@@ -799,13 +801,7 @@ function(juce_add_aax target product_name sources)
                 SUFFIX ".aaxdll"
         )
 
-        set(aax_plugin_path "${product_name}.aaxplugin")
         set(working_dir "${CMAKE_CURRENT_BINARY_DIR}")
-
-        add_custom_command(TARGET ${target} PRE_BUILD 
-            COMMAND ${CMAKE_COMMAND} -E make_directory "${aax_plugin_path}/Contents/x64"
-            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)"
-        )
 
         if(AAXSDK_X64)
             set(aax_plugin_dest_path "${aax_plugin_path}/Contents/x64")
@@ -813,9 +809,15 @@ function(juce_add_aax target product_name sources)
             set(aax_plugin_dest_path "${aax_plugin_path}/Contents/Win32")
         endif()
 
+        add_custom_command(TARGET ${target} PRE_BUILD 
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${aax_plugin_dest_path}"
+            COMMAND call "\"${AAXSDK_CREATE_PACKAGE}\"" "\"${aax_plugin_dest_path}\"" "\"${AAXSDK_HOME}/Utilities/PlugIn.ico\"" # TODO move to prebuild step
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)"
+        )
+
+
         add_custom_command(TARGET ${target} POST_BUILD 
             COMMAND ${CMAKE_COMMAND} -E copy "\"$<TARGET_FILE:${target}>\"" "\"${aax_plugin_dest_path}/${product_name}.aaxplugin\""
-            COMMAND call "\"${AAXSDK_CREATE_PACKAGE}\"" "\"${aax_plugin_dest_path}\"" "\"${AAXSDK_HOME}/Utilities/PlugIn.ico\"" # TODO move to prebuild step
             COMMAND xcopy "\"${aax_plugin_path}\"" "\"$(CommonProgramW6432)/Avid/Audio/Plug-Ins/${product_name}.aaxplugin\""  /O /X /E /H /K /Y /I /C /Q /R
             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)"
         )
@@ -841,9 +843,33 @@ function(juce_add_vst3 target product_name sources)
         # OUTPUT_NAME "${product_name}"
     )
     if(MSVC)
+        set(vst3_plugin_path "${product_name}.vst3")
         set_target_properties(${target} 
             PROPERTIES 
-                SUFFIX ".vst3"
+                SUFFIX ".vst3dll"
+        )
+
+        if(VST3SDK_X64)
+            set(vst3_plugin_dest_path "${vst3_plugin_path}/Contents/x86-win")
+            set(vst3_plugin_install_path "$(CommonProgramW6432)/VST3/${product_name}.vst3")
+        else()
+            set(vst3_plugin_dest_path "${vst3_plugin_path}/Contents/x86_64-win")
+            set(vst3_plugin_install_path "$(CommonProgramFiles)/VST3/${product_name}.vst3")
+        endif()
+
+        add_custom_command(TARGET ${target} PRE_BUILD 
+            COMMAND ${CMAKE_COMMAND} -E make_directory "\"${vst3_plugin_path}/Resources\""
+            COMMAND ${CMAKE_COMMAND} -E make_directory "\"${vst3_plugin_dest_path}\""
+            COMMAND ${CMAKE_COMMAND} -E copy "${JUCE_CMAKE_MODULE_DIR}/FindJuceTemplates/desktop.ini.in" "${vst3_plugin_path}/desktop.ini"
+            COMMAND attrib +s ${vst3_plugin_path}/desktop.ini
+            #COMMAND attrib +s ${vst3_plugin_path}/PlugIn.ico
+            COMMAND attrib +s ${vst3_plugin_path}
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)"
+        )
+        add_custom_command(TARGET ${target} POST_BUILD 
+            COMMAND ${CMAKE_COMMAND} -E copy "\"$<TARGET_FILE:${target}>\"" "\"${vst3_plugin_dest_path}/${vst3_plugin_path}\""
+            COMMAND xcopy "\"${vst3_plugin_path}\"" "\"${vst3_plugin_install_path}\""  /O /X /E /H /K /Y /I /C /Q /R
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)"
         )
     endif()
 
