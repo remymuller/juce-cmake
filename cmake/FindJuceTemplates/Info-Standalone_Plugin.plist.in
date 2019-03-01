@@ -8,7 +8,7 @@
     <key>CFBundleIconFile</key>
     <string>@BUNDLE_ICON_FILE@</string>
     <key>CFBundleIdentifier</key>
-    <string>@BUNDLE_IDENTIFIER@</string>
+    <string>@BUNDLE_IDENTIFIER@SA</string>
     <key>CFBundleName</key>
     <string>@PRODUCT_NAME@</string>
     <key>CFBundleDisplayName</key>
