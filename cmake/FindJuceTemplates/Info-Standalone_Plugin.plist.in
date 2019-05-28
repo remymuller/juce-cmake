@@ -25,5 +25,7 @@
     <string>@COMPANY_NAME@</string>
     <key>NSHighResolutionCapable</key>
     <true/>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Please enable Microphone Access</string>
   </dict>
 </plist>
