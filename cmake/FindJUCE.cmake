@@ -10,6 +10,9 @@
 #     [REQUIRED]             # Fail with error if JUCE is not found
 #     [COMPONENTS <libs>...] # JUCE modules by their canonical name
 #     )                      # e.g. "juce_core"
+#
+# One can set the JUCE_DIR_HINT variable to give a specific location to look 
+# for JUCE files.
 # 
 # This module finds headers and requested component libraries. 
 # Results are reported in variables::
@@ -413,10 +416,10 @@ endfunction()
 find_path(JUCE_ROOT_DIR 
 	"modules/JUCE Module Format.txt"
 	HINTS
-		${PROJECT_SOURCE_DIR}/../
-		${PROJECT_SOURCE_DIR}/JUCE
-		${CMAKE_CURRENT_LIST_DIR}/../../JUCE
-		${CMAKE_CURRENT_LIST_DIR}/../JUCE
+		"${PROJECT_SOURCE_DIR}/../"
+		"${PROJECT_SOURCE_DIR}/JUCE"
+		"${CMAKE_CURRENT_LIST_DIR}/../../JUCE"
+		"${CMAKE_CURRENT_LIST_DIR}/../JUCE"
 	DOC 
 		"JUCE library directory"
 )
