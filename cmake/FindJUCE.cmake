@@ -291,6 +291,7 @@ macro(juce_add_module module)
 		#message("juce_add_module: YES\t${module}")
 
         # TODO: look for ${JUCE_MODULES_PATHS} and populate with ${JUCE_MODULES_PREFIX}
+        # TODO: also use find_path
 		set(JUCE_${module}_HEADER "${JUCE_MODULES_PREFIX}/${module}/${module}.h" CACHE PATH "Header for JUCE module ${module}")
         mark_as_advanced(JUCE_${module}_HEADER)
 
@@ -481,7 +482,7 @@ juce_generate_app_config(${JUCE_APPCONFIG_H})
 # generate JuceHeader.h
 # inherit VERSION from outside scope
 if(DEFINED VERSION)
-    set(JUCE_PROJECT_VERSION ${VERSION})
+    set(JUCE_PROJECT_VERSION "${VERSION}")
 elseif(DEFINED PROJECT_VERSION)
     set(JUCE_PROJECT_VERSION ${PROJECT_VERSION})
 else()
