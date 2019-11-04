@@ -25,7 +25,7 @@ endif()
 foreach(basedir "C:/" "D:/" "$ENV{HOME}/" "${CMAKE_CURRENT_SOURCE_DIR}/" "${CMAKE_CURRENT_LIST_DIR}/")
 	foreach(level "" "../" "../../")
 		foreach(suffix "" "SDKs/")
-            foreach(pattern "AAX_SDK_2p3p1" "AAX_SDK" "AAX")
+            foreach(pattern "AAX_SDK_2p3p2" "AAX_SDK_2p3p1" "AAX_SDK" "AAX")
 				file(GLOB results1 "${basedir}${level}${suffix}${pattern}*")
 				set(results ${results} ${results1})
             endforeach()
@@ -70,6 +70,7 @@ if(AAXSDK_FOUND)
     )
     mark_as_advanced(AAXSDK_LIB_DEBUG)
 
+    message("${AAXSDK_HOME}/Libs/Release/libAAXLibrary_libcpp.a")
     find_library(AAXSDK_LIB_RELEASE
         NAMES 
             libAAXLibrary_libcpp.a
