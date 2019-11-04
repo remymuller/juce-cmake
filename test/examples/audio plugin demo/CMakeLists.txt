@@ -52,6 +52,7 @@ juce_add_audio_plugin(
     COMPANY_WEBSITE             www.juce.com
     AAX_IDENTIFIER              com.yourcompany.JuceDemoPlugin
     AAX_CATEGORY                AAX_ePlugInCategory_Dynamics
+    VST3_CATEGORY               "Fx"
     BUNDLE_IDENTIFIER           com.juce.JuceDemoPlugin
     FORMATS                     VST AU Standalone AAX VST3 # AUv3
     DEFINITIONS                 ${common_definitions}
