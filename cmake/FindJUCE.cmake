@@ -415,12 +415,18 @@ find_path(JUCE_ROOT_DIR
 	"modules/JUCE Module Format.txt"
 	HINTS
 		${PROJECT_SOURCE_DIR}/../
+        ${PROJECT_SOURCE_DIR}/../JUCE
 		${PROJECT_SOURCE_DIR}/JUCE
 		${CMAKE_CURRENT_LIST_DIR}/../../JUCE
 		${CMAKE_CURRENT_LIST_DIR}/../JUCE
 	DOC 
 		"JUCE library directory"
 )
+
+if(NOT EXISTS ${JUCE_ROOT_DIR})
+    message(FATAL_ERROR "JUCE not found.")
+endif() 
+
 set(JUCE_MODULES_PREFIX "${JUCE_ROOT_DIR}/modules")
 mark_as_advanced(JUCE_ROOT_DIR)
 
