@@ -1,7 +1,7 @@
-#.rst:	
+#.rst:  
 # FindJUCE
-# ---------	
-#	
+# --------- 
+#   
 # Find JUCE library 
 # 
 # Use this module by invoking find_package with the form::
@@ -16,10 +16,10 @@
 # 
 #   JUCE_FOUND              - True if headers and requested modules were found
 #   JUCE_INCLUDE_DIR        - JUCE include directories
-#	JUCE_ROOT_DIR			- path to JUCE 
+#   JUCE_ROOT_DIR           - path to JUCE 
 #   JUCE_LIBRARIES          - JUCE component libraries to be linked
 #   JUCE_MODULES            - list of resolved modules
-#	JUCE_SOURCES			- JUCE library sources
+#   JUCE_SOURCES            - JUCE library sources
 #   JUCE_<C>_FOUND          - True if component <C> was found 
 #   JUCE_<C>_HEADER         - Module header for component <C> 
 #   JUCE_<C>_SOURCES        - Module sources for component <C>  
@@ -49,69 +49,69 @@ cmake_policy(SET CMP0057 NEW) # support for IN_LIST operator
 #------------------------------------------------------------------------------
 
 function(juce_module_declaration_set_properties prefix module_declaration properties)
-	foreach(property ${properties})
-		set(${prefix}_${property} "" PARENT_SCOPE)
+    foreach(property ${properties})
+        set(${prefix}_${property} "" PARENT_SCOPE)
 
-		set(pattern "^.*${property}: *(.*)$")
+        set(pattern "^.*${property}: *(.*)$")
 
-		foreach(line ${module_declaration})
-			if(line MATCHES ${pattern})
-				string(REGEX REPLACE ${pattern} "\\1" var_raw "${line}")
-				string(REGEX REPLACE " |," ";" var_clean "${var_raw}")
+        foreach(line ${module_declaration})
+            if(line MATCHES ${pattern})
+                string(REGEX REPLACE ${pattern} "\\1" var_raw "${line}")
+                string(REGEX REPLACE " |," ";" var_clean "${var_raw}")
 
-				# debug 
-				# message("line: ${line}")
-				# message("var_raw: ${var_raw}")
-				# message("var_clean: ${var_clean}")
+                # debug 
+                # message("line: ${line}")
+                # message("var_raw: ${var_raw}")
+                # message("var_clean: ${var_clean}")
 
-				set(${prefix}_${property} ${var_clean} PARENT_SCOPE)
-			endif()
-		endforeach() 
-	endforeach() 
+                set(${prefix}_${property} ${var_clean} PARENT_SCOPE)
+            endif()
+        endforeach() 
+    endforeach() 
 endfunction()
 
 #------------------------------------------------------------------------------
 
 function(juce_module_get_declaration module_info module_header)
-	file(READ ${module_header} text)
+    file(READ ${module_header} text)
 
-	# Extract block
-	set(pattern ".*(BEGIN_JUCE_MODULE_DECLARATION)(.+)(END_JUCE_MODULE_DECLARATION).*")
-	string(REGEX REPLACE ${pattern} "\\2" module_declaration ${text})
-	#message("${module_declaration}")
+    # Extract block
+    set(pattern ".*(BEGIN_JUCE_MODULE_DECLARATION)(.+)(END_JUCE_MODULE_DECLARATION).*")
+    string(REGEX REPLACE ${pattern} "\\2" module_declaration ${text})
+    #message("${module_declaration}")
 
-	# split block into lines
-	string(REGEX REPLACE "\r?\n" ";" module_declaration_lines ${module_declaration})
+    # split block into lines
+    string(REGEX REPLACE "\r?\n" ";" module_declaration_lines ${module_declaration})
 
-	set(${module_info} ${module_declaration_lines} PARENT_SCOPE)
+    set(${module_info} ${module_declaration_lines} PARENT_SCOPE)
 endfunction()
 
 #------------------------------------------------------------------------------
 
 function(juce_module_get_info module)
-	# get parsed module declaration as lines
-	juce_module_get_declaration(JUCE_${module}_declaration ${JUCE_${module}_HEADER})
+    # get parsed module declaration as lines
+    juce_module_get_declaration(JUCE_${module}_declaration ${JUCE_${module}_HEADER})
 
-	# get properties	
-	set(properties 
-		dependencies 
-		OSXFrameworks 
-		OSXLibs
-		iOSFrameworks 
-		iOSLibs
-		linuxLibs
-		windowsLibs
-		minimumCppStandard
-		searchpaths
-	)
-	set(prefix JUCE_${module})
-	juce_module_declaration_set_properties(${prefix} "${JUCE_${module}_declaration}" "${properties}")
+    # get properties    
+    set(properties 
+        dependencies 
+        OSXFrameworks 
+        OSXLibs
+        iOSFrameworks 
+        iOSLibs
+        linuxLibs
+        windowsLibs
+        minimumCppStandard
+        searchpaths
+    )
+    set(prefix JUCE_${module})
+    juce_module_declaration_set_properties(${prefix} "${JUCE_${module}_declaration}" "${properties}")
 
-	# forward properties to parent scope
-	foreach(property ${properties})
-		set(JUCE_${module}_${property} ${JUCE_${module}_${property}} PARENT_SCOPE)
+    # forward properties to parent scope
+    foreach(property ${properties})
+        set(JUCE_${module}_${property} ${JUCE_${module}_${property}} PARENT_SCOPE)
         #message("JUCE_${module}_${property}:\t${JUCE_${module}_${property}}")
-	endforeach()
+    endforeach()
 
     set(JUCE_${module}_minimumCppStandard ${JUCE_${module}_minimumCppStandard} CACHE STRING "")
     mark_as_advanced(JUCE_${module}_minimumCppStandard)
@@ -120,30 +120,30 @@ endfunction()
 #------------------------------------------------------------------------------
 
 macro(juce_module_set_platformlibs module)
-	set(JUCE_${module}_platformlibs "")
+    set(JUCE_${module}_platformlibs "")
 
-	if(APPLE_IOS OR IOS OR ${CMAKE_SYSTEM_NAME} MATCHES iOS)
-		set(_libs ${JUCE_${module}_iOSFrameworks} ${JUCE_${module}_iOSLibs})
-	elseif(APPLE)
-		set(_libs ${JUCE_${module}_OSXFrameworks} ${JUCE_${module}_OSXLibs})
-	elseif(WINDOWS)
-		set(_libs ${JUCE_${module}_windowsLibs})
-	#elseif(Android)
-	elseif(Linux)
-		set(_libs ${JUCE_${module}_linuxLibs})
-	else()
-	endif()
+    if(APPLE_IOS OR IOS OR ${CMAKE_SYSTEM_NAME} MATCHES iOS)
+        set(_libs ${JUCE_${module}_iOSFrameworks} ${JUCE_${module}_iOSLibs})
+    elseif(APPLE)
+        set(_libs ${JUCE_${module}_OSXFrameworks} ${JUCE_${module}_OSXLibs})
+    elseif(WINDOWS)
+        set(_libs ${JUCE_${module}_windowsLibs})
+    #elseif(Android)
+    elseif(Linux)
+        set(_libs ${JUCE_${module}_linuxLibs})
+    else()
+    endif()
 
-	foreach(_lib ${_libs})
-		find_library(JUCE_LIB_${_lib} ${_lib})
+    foreach(_lib ${_libs})
+        find_library(JUCE_LIB_${_lib} ${_lib})
         mark_as_advanced(JUCE_LIB_${_lib})
-		list(APPEND JUCE_${module}_platformlibs ${JUCE_LIB_${_lib}})
-	endforeach()
+        list(APPEND JUCE_${module}_platformlibs ${JUCE_LIB_${_lib}})
+    endforeach()
 
     # set(JUCE_${module}_platformlibs ${JUCE_${module}_platformlibs} CACHE STRING "")
 
-	unset(_lib)
-	unset(_libs)
+    unset(_lib)
+    unset(_libs)
 endmacro()
 
 #------------------------------------------------------------------------------
@@ -284,35 +284,35 @@ endfunction()
 
 macro(juce_add_module module)
     if(${JUCE_${module}_FOUND})
-		# debug
-		#message("juce_add_module: NO \t${module}")
-	else()
-		# debug
-		#message("juce_add_module: YES\t${module}")
+        # debug
+        #message("juce_add_module: NO \t${module}")
+    else()
+        # debug
+        #message("juce_add_module: YES\t${module}")
 
         # TODO: look for ${JUCE_MODULES_PATHS} and populate with ${JUCE_MODULES_PREFIX}
         # TODO: also use find_path
-		set(JUCE_${module}_HEADER "${JUCE_MODULES_PREFIX}/${module}/${module}.h" CACHE PATH "Header for JUCE module ${module}")
+        set(JUCE_${module}_HEADER "${JUCE_MODULES_PREFIX}/${module}/${module}.h" CACHE PATH "Header for JUCE module ${module}")
         mark_as_advanced(JUCE_${module}_HEADER)
 
-		juce_module_get_info(${module})
+        juce_module_get_info(${module})
 
-		juce_module_set_platformlibs(${module})
+        juce_module_set_platformlibs(${module})
         juce_module_get_config_flags(${module})
 
 
-		# debug
-		# set(properties 
-		# 	dependencies 
-		# 	OSXFrameworks 
-		# 	iOSFrameworks 
-		# 	linuxLibs
-		# )
-		# foreach(property ${properties})
-		# 	message("JUCE_${module}_${property}:\t${JUCE_${module}_${property}}")
-		# endforeach()
+        # debug
+        # set(properties 
+        #   dependencies 
+        #   OSXFrameworks 
+        #   iOSFrameworks 
+        #   linuxLibs
+        # )
+        # foreach(property ${properties})
+        #   message("JUCE_${module}_${property}:\t${JUCE_${module}_${property}}")
+        # endforeach()
 
-		# generate immutable INTERFACE IMPORTED library for module
+        # generate immutable INTERFACE IMPORTED library for module
         if(NOT TARGET ${module})
 
             # force missing dependencies
@@ -323,7 +323,7 @@ macro(juce_add_module module)
                 endif()
             endif()
 
-    		add_library(${module} INTERFACE IMPORTED)
+            add_library(${module} INTERFACE IMPORTED)
             set_property(TARGET ${module} PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${JUCE_${module}_searchpaths})
             set_property(TARGET ${module} PROPERTY INTERFACE_LINK_LIBRARIES 
                     juce_common
@@ -337,16 +337,16 @@ macro(juce_add_module module)
             #message("target: ${module} already defined")
         endif()
 
-    	# set global variables
+        # set global variables
         set(JUCE_${module}_FOUND true)
 
         list(APPEND JUCE_MODULES ${module})
 
-		# tail recursion into dependent modules
-		foreach(dependent_module ${JUCE_${module}_dependencies}) 
-			juce_add_module(${dependent_module})
-		endforeach()
-	endif()
+        # tail recursion into dependent modules
+        foreach(dependent_module ${JUCE_${module}_dependencies}) 
+            juce_add_module(${dependent_module})
+        endforeach()
+    endif()
 endmacro()
 
 # hard coded add_dependencies
@@ -412,15 +412,15 @@ endfunction()
 # First find JUCE
 # TODO: look for juce_core/juce_core.h instead 
 find_path(JUCE_ROOT_DIR 
-	"modules/JUCE Module Format.txt"
-	HINTS
-		${PROJECT_SOURCE_DIR}/../
+    "modules/JUCE Module Format.txt"
+    HINTS
+        ${PROJECT_SOURCE_DIR}/../
         ${PROJECT_SOURCE_DIR}/../JUCE
-		${PROJECT_SOURCE_DIR}/JUCE
-		${CMAKE_CURRENT_LIST_DIR}/../../JUCE
-		${CMAKE_CURRENT_LIST_DIR}/../JUCE
-	DOC 
-		"JUCE library directory"
+        ${PROJECT_SOURCE_DIR}/JUCE
+        ${CMAKE_CURRENT_LIST_DIR}/../../JUCE
+        ${CMAKE_CURRENT_LIST_DIR}/../JUCE
+    DOC 
+        "JUCE library directory"
 )
 
 if(NOT EXISTS ${JUCE_ROOT_DIR})
@@ -471,7 +471,7 @@ endif()
 
 set(JUCE_MODULES "")
 foreach(module ${JUCE_FIND_COMPONENTS})
-	juce_add_module(${module})
+    juce_add_module(${module})
 endforeach()
 
 #------------------------------------------------------------------------------
@@ -597,7 +597,7 @@ source_group(JuceLibraryCode FILES ${JUCE_SOURCES})
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(JUCE DEFAULT_MSG 
     JUCE_ROOT_DIR
-	JUCE_INCLUDE_DIR 
+    JUCE_INCLUDE_DIR 
 )
 
 
@@ -1160,7 +1160,7 @@ function(juce_add_audio_plugin)
         # set enabled format
         set(BUILD_${format} 1)
 
-		# generate the list of preprocessor defines
+        # generate the list of preprocessor defines
         unset(plugin_definitions)
         juce_generate_plugin_definitions(plugin_definitions)
 
