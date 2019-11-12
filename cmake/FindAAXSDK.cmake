@@ -49,7 +49,7 @@ find_path(AAXSDK_HOME
 # handle the QUIETLY and REQUIRED arguments and set AAXSDK_FOUND to TRUE if 
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(AAXSDK DEFAULT_MSG AAXSDK_HOME)
+find_package_handle_standard_args(AAXSDK DEFAULT_MSG AAXSDK_HOME AAXSDK_X64)
 mark_as_advanced(AAXSDK_HOME)
 
 # export an AAXSDK::AAXSDK target

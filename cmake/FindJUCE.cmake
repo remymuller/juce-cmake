@@ -10,6 +10,9 @@
 #     [REQUIRED]             # Fail with error if JUCE is not found
 #     [COMPONENTS <libs>...] # JUCE modules by their canonical name
 #     )                      # e.g. "juce_core"
+#
+# One can set the JUCE_DIR_HINT variable to give a specific location to look 
+# for JUCE files.
 # 
 # This module finds headers and requested component libraries. 
 # Results are reported in variables::
@@ -818,9 +821,11 @@ function(juce_add_aax target product_name sources)
             set(aax_plugin_install_path "$(CommonProgramFiles)/Avid/Audio/Plug-Ins/${product_name}.aaxplugin")
         endif()
 
+        file(TO_NATIVE_PATH ${aax_plugin_dest_path} aax_plugin_dest_path)
+        file(TO_NATIVE_PATH ${AAXSDK_HOME}/Utilities/PlugIn.ico aax_ico_path)
         add_custom_command(TARGET ${target} PRE_BUILD 
             COMMAND ${CMAKE_COMMAND} -E make_directory "${aax_plugin_dest_path}"
-            COMMAND call "\"${AAXSDK_CREATE_PACKAGE}\"" "\"${aax_plugin_dest_path}\"" "\"${AAXSDK_HOME}/Utilities/PlugIn.ico\"" 
+            COMMAND call "\"${AAXSDK_CREATE_PACKAGE}\"" "\"${aax_plugin_dest_path}\"" "\"${aax_ico_path}\"" 
             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)"
         )
 

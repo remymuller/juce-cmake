@@ -21,7 +21,7 @@ set(SOURCES
     Source/PluginEditor.cpp
     Source/PluginEditor.h
     Source/PluginProcessor.cpp
-    Source/PluginEditor.h
+    Source/PluginProcessor.h
     Source/SineWaveSynth.h
 )
 

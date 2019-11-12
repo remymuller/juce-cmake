@@ -3,8 +3,8 @@
 # 
 #  VST3SDK_FOUND - system has VST3 SDK
 #  VST3SDK_HOME - the VST3 SDK root directory
-#  VST2SDK_HOME - the VST3 SDK root directory
-#  VSTSDK_HOME - the VST3 SDK root directory
+#  VST2SDK_HOME - the VST2 SDK root directory
+#  VSTSDK_HOME - the VST SDK root directory
 
 # TODO inherit the paths from somewhere
 
