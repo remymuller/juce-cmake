@@ -16,12 +16,14 @@ if(DEFINED VST3SDK_HOME)
 	set(results ${results} "${VST3SDK_HOME}/../")
 endif()
 
-foreach(basedir "${CMAKE_CURRENT_SOURCE_DIR}/" "${CMAKE_CURRENT_LIST_DIR}/" "$ENV{HOME}/" "C:/" "D:/")
+foreach(basedir "${CMAKE_CURRENT_SOURCE_DIR}/" "${CMAKE_CURRENT_LIST_DIR}/" "$ENV{HOME}/" "C:/")
 	foreach(level "" "../" "../../")
 		foreach(suffix "" "SDKs/")
-            foreach(pattern "VST_SDK")
-				file(GLOB results1 "${basedir}${level}${suffix}${pattern}*")
-				set(results ${results} ${results1})
+            foreach(subfolder "" "VST_SDK/")
+                foreach(pattern "" "vstsdk2.4" "VST2_SDK" "vst*" "VST*")
+				    file(GLOB results1 "${basedir}${level}${suffix}${subfolder}${pattern}")
+				    set(results ${results} ${results1})
+                endforeach()
             endforeach()
 		endforeach()
 	endforeach()
@@ -39,8 +41,16 @@ find_path(VSTSDK_HOME
     	${VSTSDK_SEARCH_PATHS_HINT}
 )
 
+find_path(VST2SDK_HOME
+	  pluginterfaces/vst2.x/aeffect.h
+	  public.sdk/source/vst2.x/audioeffectx.h
+	  public.sdk/source/vst2.x/audioeffect.h
+	HINTS
+    	${VSTSDK_SEARCH_PATHS_HINT}
+)
+
 set(VST3SDK_HOME "${VSTSDK_HOME}/VST3_SDK" CACHE PATH "path to the VST3_SDK")
-set(VST2SDK_HOME "${VSTSDK_HOME}/VST2_SDK" CACHE PATH "path to the VST2_SDK")
+set(VST2SDK_HOME "${VST2SDK_HOME}" CACHE PATH "path to the VST2_SDK")
 
 # handle the QUIETLY and REQUIRED arguments and set AAXSDK_FOUND to TRUE if 
 # all listed variables are TRUE
