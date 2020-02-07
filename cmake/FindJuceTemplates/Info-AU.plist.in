@@ -42,8 +42,6 @@
         <string>@PLUGIN_CODE@</string>  
         <key>version</key>
         <integer>@JUCE_PROJECT_VERSION_HEX@</integer>
-        <key>sandboxSafe</key>
-        <true/>
       </dict>
     </array>
   </dict>
