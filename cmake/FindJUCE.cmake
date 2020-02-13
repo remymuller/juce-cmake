@@ -1150,6 +1150,11 @@ function(juce_add_audio_plugin)
         endif()
     endforeach()
 
+	string(LENGTH ${PLUGIN_CODE} PLUGIN_CODE_LENGTH)
+	string(LENGTH ${PLUGIN_MANUFACTURER_CODE} PLUGIN_MANUFACTURER_CODE_LENGTH)
+	if (NOT (PLUGIN_CODE_LENGTH MATCHES "4") OR NOT (PLUGIN_MANUFACTURER_CODE_LENGTH MATCHES "4"))
+		message(FATAL_ERROR "PLUGIN_CODE or PLUGIN_MANUFACTURER_CODE should be 4 chars length") 
+	endif()
     juce_four_chars_to_hex(${PLUGIN_CODE} PLUGIN_CODE_INT)
     juce_four_chars_to_hex(${PLUGIN_MANUFACTURER_CODE} PLUGIN_MANUFACTURER_CODE_INT)
 
