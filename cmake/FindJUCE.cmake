@@ -334,6 +334,28 @@ macro(juce_add_module module)
                     "${JUCE_${module}_platformlibs}"
             )
 
+            file(GLOB_RECURSE source_module
+                    "${JUCE_MODULES_PREFIX}/${module}/*.c*"
+                    "${JUCE_MODULES_PREFIX}/${module}/*.h*"
+                    "${JUCE_MODULES_PREFIX}/${module}/*.mm"
+                    "${JUCE_MODULES_PREFIX}/${module}/*.txt"
+                    "${JUCE_MODULES_PREFIX}/${module}/*.java")
+
+            target_sources(${module} INTERFACE ${source_module})
+            set_source_files_properties(${source_module} PROPERTIES HEADER_FILE_ONLY TRUE)
+
+            # Assigning sources to source groups corresponding to their actual paths.
+            foreach(_source IN ITEMS ${source_module})
+                if (IS_ABSOLUTE "${_source}")
+                    file(RELATIVE_PATH _source_rel "${CMAKE_CURRENT_SOURCE_DIR}" "${_source}")
+                else()
+                    set(_source_rel "${_source}")
+                endif()
+                get_filename_component(_source_path "${_source_rel}" PATH)
+                string(REPLACE "/" "\\" _source_path_msvc "${_source_path}")
+                source_group("${_source_path_msvc}" FILES "${_source}")
+            endforeach()
+
             # set_property(TARGET ${module} PROPERTY INTERFACE_COMPILE_OPTIONS)
             # set_property(TARGET ${module} PROPERTY INTERFACE_COMPILE_DEFINITIONS)
         else()
