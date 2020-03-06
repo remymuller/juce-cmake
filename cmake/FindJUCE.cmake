@@ -334,6 +334,19 @@ macro(juce_add_module module)
                     "${JUCE_${module}_platformlibs}"
             )
 
+            # Show juce sources but do not compile them
+            file(GLOB_RECURSE source_module
+                     "${JUCE_MODULES_PREFIX}/${module}/*.c*"
+                     "${JUCE_MODULES_PREFIX}/${module}/*.h*"
+                     "${JUCE_MODULES_PREFIX}/${module}/*.mm"
+                     "${JUCE_MODULES_PREFIX}/${module}/*.txt"
+                     "${JUCE_MODULES_PREFIX}/${module}/*.java")
+             target_sources(${module} INTERFACE ${source_module})
+             set_source_files_properties(${source_module} PROPERTIES HEADER_FILE_ONLY TRUE)
+
+            get_filename_component(JUCE_PARENT_DIR ${JUCE_ROOT_DIR} DIRECTORY)
+            source_group(TREE "${JUCE_PARENT_DIR}" FILES ${source_module})
+
             # set_property(TARGET ${module} PROPERTY INTERFACE_COMPILE_OPTIONS)
             # set_property(TARGET ${module} PROPERTY INTERFACE_COMPILE_DEFINITIONS)
         else()
