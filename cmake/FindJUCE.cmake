@@ -787,7 +787,8 @@ function(juce_add_au target product_name sources)
 
     add_custom_command(
         TARGET ${target} 
-        POST_BUILD 
+        POST_BUILD
+        COMMAND killall -9 AudioComponentRegistrar
         COMMAND auval -v ${AU_TYPE_CODE} ${PLUGIN_CODE} ${PLUGIN_MANUFACTURER_CODE}
     )
 endfunction()
