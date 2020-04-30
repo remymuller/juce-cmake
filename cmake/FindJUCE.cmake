@@ -449,7 +449,7 @@ mark_as_advanced(JUCE_ROOT_DIR)
 set(JUCE_INCLUDE_DIR ${JUCE_MODULES_PREFIX} CACHE PATH "Juce modules include directory")
 mark_as_advanced(JUCE_INCLUDE_DIR)
 
-set(JUCE_INCLUDES ${JUCE_INCLUDE_DIR} "${PROJECT_BINARY_DIR}/JuceLibraryCode")
+set(JUCE_INCLUDE_DIR ${JUCE_INCLUDE_DIR} "${PROJECT_BINARY_DIR}/JuceLibraryCode")
 
 #------------------------------------------------------------------------------
 # get VERSION
@@ -495,7 +495,6 @@ endforeach()
 
 # TODO: we could make it unique for each call to find_package if necessary using String(RANDOM) to suffix it
 set(JuceLibraryCode "${PROJECT_BINARY_DIR}/JuceLibraryCode")
-list(APPEND JUCE_INCLUDES "${JuceLibraryCode}")
 
 # generate AppConfig.h
 set(JUCE_APPCONFIG_H "${JuceLibraryCode}/AppConfig.h")
