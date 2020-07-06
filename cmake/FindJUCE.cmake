@@ -428,7 +428,7 @@ endfunction()
 # First find JUCE
 # TODO: look for juce_core/juce_core.h instead 
 find_path(JUCE_ROOT_DIR 
-    "modules/JUCE Module Format.txt"
+    "modules/juce_core/juce_core.h"
     HINTS
         ${PROJECT_SOURCE_DIR}/../
         ${PROJECT_SOURCE_DIR}/../JUCE
