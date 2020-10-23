@@ -5,6 +5,12 @@ This project is an attempt at providing [CMake][cmake] support for the [JUCE][ju
 
 Thanks to the simple [JUCE Module Format][juce_module_format] specifications, intermodule and external dependencies are resolved by inspecting each module header file for properties and configuration flags. This is similar to the way the Projucer handles modules.
 
+Announcement
+------------
+
+[JUCE][juce] 6 now has built-in official cmake support which is almost a drop-in replacement for juce-cmake. 
+Since there is no reason to duplicate efforts, juce-cmake will not be actively maintained anymore. Feel free to fork it if required.
+
 Design goals
 ------------
 
